@@ -40,11 +40,11 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="name@example.com" required />
+              <Input id="email" type="email" placeholder="name@example.com" required autoComplete="email" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Input id="password" type="password" required autoComplete="current-password" />
             </div>
             <Button type="submit" className="w-full">
               Login
