@@ -8,6 +8,7 @@ import {
   Settings,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -21,11 +22,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export default function Header() {
+  const router = useRouter();
+
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 z-50">
       <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
         <Link
-          href="#"
+          href="/dashboard"
           className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
         >
           <Leaf className="h-6 w-6" />
@@ -55,7 +58,7 @@ export default function Header() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/')}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>

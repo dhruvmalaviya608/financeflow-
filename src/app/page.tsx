@@ -1,54 +1,64 @@
 'use client';
 
-import { useState } from 'react';
-import type { Transaction } from '@/types';
-import { mockTransactions, mockBudget } from '@/data/mock-data';
-import Header from '@/components/layout/header';
-import Overview from '@/components/dashboard/overview';
-import BudgetTracker from '@/components/dashboard/budget-tracker';
-import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
-import RecentTransactions from '@/components/dashboard/recent-transactions';
-import AiReporter from '@/components/dashboard/ai-reporter';
+import { Lock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
-export default function DashboardPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [budget, setBudget] = useState(mockBudget.goal);
+export default function LoginPage() {
+  const router = useRouter();
 
-  const handleAddTransaction = (newTransactionData: Omit<Transaction, 'id' | 'date'>) => {
-    const newTransaction: Transaction = {
-      ...newTransactionData,
-      id: `txn_${Date.now()}`,
-      date: new Date(),
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
+  const handleLogin = (event: React.FormEvent) => {
+    event.preventDefault();
+    // TODO: Implement actual login logic
+    router.push('/dashboard');
   };
 
-  const currentMonthExpenses = transactions
-    .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === new Date().getMonth())
-    .reduce((sum, t) => sum + t.amount, 0);
-
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <Header />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Overview transactions={transactions} />
-        </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <div className="flex flex-col gap-4 xl:col-span-2">
-            <RecentTransactions transactions={transactions} onAddTransaction={handleAddTransaction} />
+    <main className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="mx-auto w-full max-w-sm">
+        <CardHeader className="space-y-4 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary">
+            <Lock className="h-7 w-7 text-primary-foreground" />
           </div>
-          <div className="flex flex-col gap-4">
-            <BudgetTracker
-              budget={budget}
-              onSetBudget={setBudget}
-              currentSpending={currentMonthExpenses}
-            />
-            <SpendingBreakdown transactions={transactions} />
-            <AiReporter />
+          <div>
+            <CardTitle className="text-2xl">Welcome Back</CardTitle>
+            <CardDescription>
+              Enter your credentials to access your dashboard.
+            </CardDescription>
           </div>
-        </div>
-      </main>
-    </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="name@example.com" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" required />
+            </div>
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
+          </form>
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{' '}
+            <Link href="#" className="underline">
+              Sign up
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
