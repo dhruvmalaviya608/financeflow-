@@ -51,8 +51,8 @@ export const generate14DayTransactionData = () => {
 };
 
 export const mockBudgets: BudgetCategory[] = [
-    { name: 'Groceries', spent: 320, goal: 500, icon: <Utensils className="h-5 w-5" /> },
-    { name: 'Transport', spent: 80, goal: 150, icon: <Car className="h-5 w-5" /> },
-    { name: 'Shopping', spent: 120, goal: 200, icon: <ShoppingBag className="h-5 w-5" /> },
-    { name: 'Utilities', spent: 150, goal: 150, icon: <Wrench className="h-5 w-5" /> },
+    { name: 'Groceries', spent: 320, goal: 500, icon: Utensils },
+    { name: 'Transport', spent: 80, goal: 150, icon: Car },
+    { name: 'Shopping', spent: 120, goal: 200, icon: ShoppingBag },
+    { name: 'Utilities', spent: 150, goal: 150, icon: Wrench },
 ]

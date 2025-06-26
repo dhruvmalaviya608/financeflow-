@@ -29,31 +29,34 @@ export function Budgets({ budgets }: BudgetsProps) {
         </div>
       </CardHeader>
       <CardContent className="grid gap-6">
-        {budgets.map((budget) => (
-          <div key={budget.name} className="flex items-center justify-between gap-4">
-            <div className='flex items-center gap-4'>
-                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                    {budget.icon}
-                </div>
-                <div>
-                    <p className="text-sm font-medium">{budget.name}</p>
-                </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex -space-x-2">
-                <Avatar className="h-6 w-6 border-2 border-card">
-                  <AvatarImage data-ai-hint="person" src="https://placehold.co/40x40.png" />
-                  <AvatarFallback>A</AvatarFallback>
-                </Avatar>
-                <Avatar className="h-6 w-6 border-2 border-card">
-                  <AvatarImage data-ai-hint="person" src="https://placehold.co/40x40.png" />
-                  <AvatarFallback>B</AvatarFallback>
-                </Avatar>
+        {budgets.map((budget) => {
+          const Icon = budget.icon;
+          return (
+            <div key={budget.name} className="flex items-center justify-between gap-4">
+              <div className='flex items-center gap-4'>
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                      <p className="text-sm font-medium">{budget.name}</p>
+                  </div>
               </div>
-              <Progress value={(budget.spent / budget.goal) * 100} className="w-24 h-2" />
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  <Avatar className="h-6 w-6 border-2 border-card">
+                    <AvatarImage data-ai-hint="person" src="https://placehold.co/40x40.png" />
+                    <AvatarFallback>A</AvatarFallback>
+                  </Avatar>
+                  <Avatar className="h-6 w-6 border-2 border-card">
+                    <AvatarImage data-ai-hint="person" src="https://placehold.co/40x40.png" />
+                    <AvatarFallback>B</AvatarFallback>
+                  </Avatar>
+                </div>
+                <Progress value={(budget.spent / budget.goal) * 100} className="w-24 h-2" />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );

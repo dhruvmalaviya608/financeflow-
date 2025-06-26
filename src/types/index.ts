@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ElementType } from 'react';
 
 export type TransactionCategory = 'Food' | 'Transport' | 'Shopping' | 'Utilities' | 'Entertainment' | 'Salary' | 'Other';
 
@@ -20,5 +20,5 @@ export type BudgetCategory = {
   name: string;
   goal: number;
   spent: number;
-  icon: ReactNode;
+  icon: ElementType;
 };
