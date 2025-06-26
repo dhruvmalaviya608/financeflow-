@@ -2,49 +2,75 @@
 
 import { useState } from 'react';
 import type { Transaction } from '@/types';
-import { mockTransactions, mockBudget } from '@/data/mock-data';
+import { mockTransactions, mockBudgets } from '@/data/mock-data';
 import Overview from '@/components/dashboard/overview';
-import BudgetTracker from '@/components/dashboard/budget-tracker';
-import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
-import AiReporter from '@/components/dashboard/ai-reporter';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Bell, Search, UserCircle } from 'lucide-react';
+import { TransactionOverview } from '@/components/dashboard/transaction-overview';
+import { Budgets } from '@/components/dashboard/budgets';
 
 export default function DashboardPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [budget, setBudget] = useState(mockBudget.goal);
-
-  const handleAddTransaction = (newTransactionData: Omit<Transaction, 'id' | 'date'>) => {
-    const newTransaction: Transaction = {
-      ...newTransactionData,
-      id: `txn_${Date.now()}`,
-      date: new Date(),
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-  };
-
-  const currentMonthExpenses = transactions
-    .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === new Date().getMonth())
-    .reduce((sum, t) => sum + t.amount, 0);
+  const [transactions, setTransactions] =
+    useState<Transaction[]>(mockTransactions);
 
   return (
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Overview transactions={transactions} />
+    <div className="flex min-h-screen w-full flex-col">
+      <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+        <h1 className="text-xl font-semibold">Overview</h1>
+        <div className="relative ml-auto flex-1 md:grow-0">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search..."
+            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+          />
         </div>
+        <Button variant="ghost" size="icon" className='rounded-full'>
+            <Bell className="h-5 w-5" />
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <UserCircle className="h-5 w-5" />
+              <span className="sr-only">Toggle user menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </header>
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+        <Overview transactions={transactions} />
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <div className="flex flex-col gap-4 xl:col-span-2">
-            <RecentTransactions transactions={transactions} onAddTransaction={handleAddTransaction} />
+          <div className="xl:col-span-2">
+            <TransactionOverview />
           </div>
           <div className="flex flex-col gap-4">
-            <BudgetTracker
-              budget={budget}
-              onSetBudget={setBudget}
-              currentSpending={currentMonthExpenses}
-            />
-            <SpendingBreakdown transactions={transactions} />
-            <AiReporter />
+            <RecentTransactions transactions={transactions.slice(0, 5)} />
           </div>
         </div>
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="xl:col-span-2">
+                <Budgets budgets={mockBudgets} />
+            </div>
+        </div>
       </main>
+    </div>
   );
 }

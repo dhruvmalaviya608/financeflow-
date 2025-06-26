@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export type TransactionCategory = 'Food' | 'Transport' | 'Shopping' | 'Utilities' | 'Entertainment' | 'Salary' | 'Other';
 
 export type Transaction = {
@@ -12,4 +14,11 @@ export type Transaction = {
 export type Budget = {
   goal: number;
   spent: number;
+};
+
+export type BudgetCategory = {
+  name: string;
+  goal: number;
+  spent: number;
+  icon: ReactNode;
 };

@@ -1,4 +1,5 @@
-import type { Transaction, Budget, TransactionCategory } from '@/types';
+import type { Transaction, Budget, TransactionCategory, BudgetCategory } from '@/types';
+import { Utensils, Car, ShoppingBag, Wrench } from 'lucide-react';
 
 const today = new Date();
 const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -19,6 +20,9 @@ export const mockTransactions: Transaction[] = [
   { id: '8', date: generateRandomDateThisMonth(), description: 'Internet Bill', amount: 60.00, type: 'expense', category: 'Utilities' },
   { id: '9', date: generateRandomDateThisMonth(), description: 'Freelance Project', amount: 750, type: 'income', category: 'Other' },
   { id: '10', date: generateRandomDateThisMonth(), description: 'Bus Fare', amount: 22.50, type: 'expense', category: 'Transport' },
+  { id: '11', date: new Date('2024-07-15'), description: 'Dinner Out', amount: 88.00, type: 'expense', category: 'Food' },
+  { id: '12', date: new Date('2024-07-14'), description: 'New book', amount: 15.00, type: 'expense', category: 'Shopping' },
+  { id: '13', date: new Date('2024-07-13'), description: 'Coffee', amount: 5.50, type: 'expense', category: 'Food' },
 ];
 
 
@@ -32,3 +36,23 @@ export const mockBudget: Budget = {
 };
 
 export const categories: TransactionCategory[] = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Salary', 'Other'];
+
+export const generate14DayTransactionData = () => {
+  const data = [];
+  const today = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const day = date.toLocaleString('en-US', { month: 'short', day: '2-digit' });
+    const total = Math.floor(Math.random() * 4500) + 500;
+    data.push({ name: day, total });
+  }
+  return data;
+};
+
+export const mockBudgets: BudgetCategory[] = [
+    { name: 'Groceries', spent: 320, goal: 500, icon: <Utensils className="h-5 w-5" /> },
+    { name: 'Transport', spent: 80, goal: 150, icon: <Car className="h-5 w-5" /> },
+    { name: 'Shopping', spent: 120, goal: 200, icon: <ShoppingBag className="h-5 w-5" /> },
+    { name: 'Utilities', spent: 150, goal: 150, icon: <Wrench className="h-5 w-5" /> },
+]
