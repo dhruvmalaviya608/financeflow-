@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Transaction } from '@/types';
 import { mockTransactions, mockBudgets } from '@/data/mock-data';
 import Overview from '@/components/dashboard/overview';
@@ -30,6 +31,7 @@ import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
 
@@ -39,6 +41,10 @@ export default function DashboardPage() {
       id: (transactions.length + 1).toString(),
     };
     setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  const handleLogout = () => {
+    router.push('/');
   };
 
   return (
@@ -89,7 +95,7 @@ export default function DashboardPage() {
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
