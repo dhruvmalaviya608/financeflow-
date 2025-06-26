@@ -1,4 +1,4 @@
-import type { Transaction, Budget, TransactionCategory, BudgetCategory } from '@/types';
+import type { Transaction, Budget, TransactionCategory, BudgetCategory, Account } from '@/types';
 import { Utensils, Car, ShoppingBag, Wrench } from 'lucide-react';
 
 const today = new Date();
@@ -10,19 +10,19 @@ const generateRandomDateThisMonth = () => {
 }
 
 export const mockTransactions: Transaction[] = [
-  { id: '1', date: generateRandomDateThisMonth(), description: 'Monthly Salary', amount: 5000, type: 'income', category: 'Salary' },
-  { id: '2', date: generateRandomDateThisMonth(), description: 'Grocery Shopping', amount: 150.75, type: 'expense', category: 'Food' },
-  { id: '3', date: generateRandomDateThisMonth(), description: 'Gasoline', amount: 45.50, type: 'expense', category: 'Transport' },
-  { id: '4', date: generateRandomDateThisMonth(), description: 'Electricity Bill', amount: 75.00, type: 'expense', category: 'Utilities' },
-  { id: '5', date: generateRandomDateThisMonth(), description: 'Movie Tickets', amount: 30.00, type: 'expense', category: 'Entertainment' },
-  { id: '6', date: generateRandomDateThisMonth(), description: 'New T-shirt', amount: 25.00, type: 'expense', category: 'Shopping' },
-  { id: '7', date: generateRandomDateThisMonth(), description: 'Lunch with friends', amount: 55.20, type: 'expense', category: 'Food' },
-  { id: '8', date: generateRandomDateThisMonth(), description: 'Internet Bill', amount: 60.00, type: 'expense', category: 'Utilities' },
-  { id: '9', date: generateRandomDateThisMonth(), description: 'Freelance Project', amount: 750, type: 'income', category: 'Other' },
-  { id: '10', date: generateRandomDateThisMonth(), description: 'Bus Fare', amount: 22.50, type: 'expense', category: 'Transport' },
-  { id: '11', date: new Date('2024-07-15'), description: 'Dinner Out', amount: 88.00, type: 'expense', category: 'Food' },
-  { id: '12', date: new Date('2024-07-14'), description: 'New book', amount: 15.00, type: 'expense', category: 'Shopping' },
-  { id: '13', date: new Date('2024-07-13'), description: 'Coffee', amount: 5.50, type: 'expense', category: 'Food' },
+  { id: '1', date: generateRandomDateThisMonth(), description: 'Monthly Salary', amount: 5000, type: 'income', category: 'Salary', account: 'Bank' },
+  { id: '2', date: generateRandomDateThisMonth(), description: 'Grocery Shopping', amount: 150.75, type: 'expense', category: 'Food', account: 'Card' },
+  { id: '3', date: generateRandomDateThisMonth(), description: 'Gasoline', amount: 45.50, type: 'expense', category: 'Transport', account: 'Card' },
+  { id: '4', date: generateRandomDateThisMonth(), description: 'Electricity Bill', amount: 75.00, type: 'expense', category: 'Utilities', account: 'Bank' },
+  { id: '5', date: generateRandomDateThisMonth(), description: 'Movie Tickets', amount: 30.00, type: 'expense', category: 'Entertainment', account: 'Card' },
+  { id: '6', date: generateRandomDateThisMonth(), description: 'New T-shirt', amount: 25.00, type: 'expense', category: 'Shopping', account: 'Card' },
+  { id: '7', date: generateRandomDateThisMonth(), description: 'Lunch with friends', amount: 55.20, type: 'expense', category: 'Food', account: 'Cash' },
+  { id: '8', date: generateRandomDateThisMonth(), description: 'Internet Bill', amount: 60.00, type: 'expense', category: 'Utilities', account: 'Bank' },
+  { id: '9', date: generateRandomDateThisMonth(), description: 'Freelance Project', amount: 750, type: 'income', category: 'Other', account: 'Bank' },
+  { id: '10', date: generateRandomDateThisMonth(), description: 'Bus Fare', amount: 22.50, type: 'expense', category: 'Transport', account: 'Cash' },
+  { id: '11', date: new Date('2024-07-15'), description: 'Dinner Out', amount: 88.00, type: 'expense', category: 'Food', account: 'Card' },
+  { id: '12', date: new Date('2024-07-14'), description: 'New book', amount: 15.00, type: 'expense', category: 'Shopping', account: 'Card' },
+  { id: '13', date: new Date('2024-07-13'), description: 'Coffee', amount: 5.50, type: 'expense', category: 'Food', account: 'Cash' },
 ];
 
 
@@ -36,6 +36,7 @@ export const mockBudget: Budget = {
 };
 
 export const categories: TransactionCategory[] = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment', 'Salary', 'Other'];
+export const accounts: Account[] = ['Cash', 'Bank', 'Card'];
 
 export const generate14DayTransactionData = () => {
   const data = [];

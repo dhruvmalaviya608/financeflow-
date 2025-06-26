@@ -7,6 +7,14 @@ import Overview from '@/components/dashboard/overview';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -15,14 +23,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Bell, Search, UserCircle } from 'lucide-react';
+import { Bell, Search, UserCircle, Plus } from 'lucide-react';
 import { TransactionOverview } from '@/components/dashboard/transaction-overview';
 import { Budgets } from '@/components/dashboard/budgets';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
+import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 
 export default function DashboardPage() {
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(mockTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
+
+  const handleAddTransaction = (data: Omit<Transaction, 'id'>) => {
+    const newTransaction: Transaction = {
+      ...data,
+      id: (transactions.length + 1).toString(),
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -36,6 +53,26 @@ export default function DashboardPage() {
             className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
           />
         </div>
+        <Dialog open={isAddTransactionOpen} onOpenChange={setAddTransactionOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1">
+              <Plus className="h-4 w-4" />
+              Add Transaction
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add a new transaction</DialogTitle>
+              <DialogDescription>
+                Fill in the details below to log a new income or expense.
+              </DialogDescription>
+            </DialogHeader>
+            <AddTransactionForm 
+              onFormSubmit={handleAddTransaction}
+              setDialogOpen={setAddTransactionOpen}
+            />
+          </DialogContent>
+        </Dialog>
         <Button variant="ghost" size="icon" className='rounded-full'>
             <Bell className="h-5 w-5" />
         </Button>

@@ -22,9 +22,10 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import type { Transaction, TransactionCategory } from '@/types';
-import { categories } from '@/data/mock-data';
+import type { Transaction, TransactionCategory, Account } from '@/types';
+import { categories, accounts } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
+import { DatePicker } from '../ui/date-picker';
 
 const FormSchema = z.object({
   description: z.string().min(2, {
@@ -33,10 +34,14 @@ const FormSchema = z.object({
   amount: z.coerce.number().positive({ message: 'Amount must be positive.' }),
   type: z.enum(['income', 'expense']),
   category: z.custom<TransactionCategory>(),
+  account: z.custom<Account>(),
+  date: z.date({
+    required_error: "A date is required.",
+  }),
 });
 
 type AddTransactionFormProps = {
-  onFormSubmit: (data: Omit<Transaction, 'id' | 'date'>) => void;
+  onFormSubmit: (data: Omit<Transaction, 'id'>) => void;
   setDialogOpen: (open: boolean) => void;
 };
 
@@ -50,6 +55,8 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
       amount: 0,
       type: 'expense',
       category: 'Food',
+      account: 'Cash',
+      date: new Date(),
     },
   });
 
@@ -64,26 +71,26 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="type"
           render={({ field }) => (
-            <FormItem className="space-y-3">
+            <FormItem className="space-y-2">
               <FormLabel>Transaction Type</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="flex flex-col space-y-1"
+                  className="flex space-x-4"
                 >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="expense" />
                     </FormControl>
                     <FormLabel className="font-normal">Expense</FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="income" />
                     </FormControl>
@@ -101,9 +108,9 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Note</FormLabel>
               <FormControl>
-                <Textarea placeholder="e.g., Groceries from Whole Foods" {...field} />
+                <Textarea placeholder="e.g., Fried Chicken" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -111,7 +118,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
         />
 
         <div className="grid grid-cols-2 gap-4">
-           <FormField
+          <FormField
             control={form.control}
             name="amount"
             render={({ field }) => (
@@ -129,7 +136,20 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Date</FormLabel>
+                  <DatePicker date={field.value} setDate={field.onChange} />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="category"
@@ -152,9 +172,31 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
               </FormItem>
             )}
           />
+           <FormField
+            control={form.control}
+            name="account"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Account</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an account" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {accounts.map((acc) => (
+                      <SelectItem key={acc} value={acc}>{acc}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        <Button type="submit" className="w-full">Submit</Button>
+        <Button type="submit" className="w-full">Save Transaction</Button>
       </form>
     </Form>
   );

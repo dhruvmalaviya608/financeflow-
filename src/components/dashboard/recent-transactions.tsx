@@ -12,6 +12,7 @@ import type { Transaction, TransactionCategory } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { MoreHorizontal, Utensils, Car, ShoppingBag, Wrench, Ticket, Landmark } from 'lucide-react';
+import { format } from 'date-fns';
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -33,10 +34,9 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-            <CardTitle>Messages</CardTitle>
+            <CardTitle>Recent Transactions</CardTitle>
             <div>
-                <Button variant="ghost" size="sm">Today</Button>
-                <Button variant="secondary" size="sm">All</Button>
+                <Button variant="ghost" size="sm">View All</Button>
             </div>
         </div>
       </CardHeader>
@@ -49,9 +49,9 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
                 </Avatar>
                 <div className="grid gap-1">
                     <p className="text-sm font-medium leading-none">{transaction.description}</p>
-                    <p className="text-sm text-muted-foreground">{transaction.category}</p>
+                    <p className="text-sm text-muted-foreground">{transaction.category} · {format(transaction.date, "LLL dd")}</p>
                 </div>
-                <div className={`ml-auto font-medium ${transaction.type === 'income' ? 'text-blue-400' : ''}`}>
+                <div className={`ml-auto font-medium ${transaction.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
                     {transaction.type === 'income' ? '+' : '-'}
                     {formatCurrency(transaction.amount)}
                 </div>
