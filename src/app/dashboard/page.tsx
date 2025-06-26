@@ -1,7 +1,8 @@
+
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { Transaction } from '@/types';
 import { mockTransactions, mockBudgets } from '@/data/mock-data';
 import Overview from '@/components/dashboard/overview';
@@ -29,9 +30,43 @@ import { TransactionOverview } from '@/components/dashboard/transaction-overview
 import { Budgets } from '@/components/dashboard/budgets';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function UserMenu() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const name = searchParams.get('name');
+
+  const handleLogout = () => {
+    router.push('/');
+  };
+
+  const capitalize = (s: string | null): string => {
+    if (!s) return 'My Account';
+    const words = s.split(' ');
+    return words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <UserCircle className="h-5 w-5" />
+          <span className="sr-only">Toggle user menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>{capitalize(name)}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>Settings</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
 
@@ -41,10 +76,6 @@ export default function DashboardPage() {
       id: (transactions.length + 1).toString(),
     };
     setTransactions(prev => [newTransaction, ...prev]);
-  };
-
-  const handleLogout = () => {
-    router.push('/');
   };
 
   return (
@@ -82,21 +113,9 @@ export default function DashboardPage() {
         <Button variant="ghost" size="icon" className='rounded-full'>
             <Bell className="h-5 w-5" />
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <UserCircle className="h-5 w-5" />
-              <span className="sr-only">Toggle user menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Suspense fallback={<Skeleton className="h-8 w-8 rounded-full" />}>
+          <UserMenu />
+        </Suspense>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         <Overview transactions={transactions} />

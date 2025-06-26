@@ -1,37 +1,26 @@
+
 'use client';
 
 import {
   ArrowRightLeft,
-  Badge,
-  Bell,
   ChevronDown,
   ChevronRight,
   LayoutGrid,
   Package,
-  PieChart,
-  Search,
   Settings,
-  User,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { Skeleton } from '../ui/skeleton';
 
 const NavLink = ({
   href,
@@ -93,6 +82,42 @@ const CollapsibleNavLink = ({
     )
 };
 
+function UserProfile() {
+  const searchParams = useSearchParams();
+  const name = searchParams.get('name');
+
+  const capitalize = (s: string | null): string => {
+    if (!s) return 'User';
+    const words = s.split(' ');
+    return words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  }
+
+  const getInitials = (s: string | null): string => {
+    if (!s) return 'U';
+    const nameParts = s.split(' ');
+    if (nameParts.length > 1) {
+      return nameParts[0].charAt(0).toUpperCase() + nameParts[nameParts.length - 1].charAt(0).toUpperCase();
+    }
+    return s.charAt(0).toUpperCase();
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+        <Avatar className="h-9 w-9">
+            <AvatarImage data-ai-hint="person" src={`https://placehold.co/100x100.png?text=${getInitials(name)}`} alt="User Avatar" />
+            <AvatarFallback>{getInitials(name)}</AvatarFallback>
+        </Avatar>
+        <div>
+            <p className="text-sm font-medium">{capitalize(name)}</p>
+            <p className="text-xs text-muted-foreground">Admin</p>
+        </div>
+        <Button variant="ghost" size="icon" className="ml-auto">
+            <ChevronDown className="h-4 w-4" />
+        </Button>
+    </div>
+  )
+}
+
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -137,19 +162,9 @@ export default function AppSidebar() {
           </nav>
         </div>
         <div className="mt-auto p-4 border-t">
-            <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
-                    <AvatarImage data-ai-hint="person" src="https://placehold.co/100x100.png" alt="@shadcn" />
-                    <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                <div>
-                    <p className="text-sm font-medium">Orbix Studio</p>
-                    <p className="text-xs text-muted-foreground">Admin</p>
-                </div>
-                <Button variant="ghost" size="icon" className="ml-auto">
-                    <ChevronDown className="h-4 w-4" />
-                </Button>
-            </div>
+            <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+              <UserProfile />
+            </Suspense>
         </div>
       </div>
     </div>
