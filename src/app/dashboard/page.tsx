@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Bell, Search, UserCircle } from 'lucide-react';
 import { TransactionOverview } from '@/components/dashboard/transaction-overview';
 import { Budgets } from '@/components/dashboard/budgets';
+import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 
 export default function DashboardPage() {
   const [transactions, setTransactions] =
@@ -64,11 +65,12 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-4">
             <RecentTransactions transactions={transactions.slice(0, 5)} />
           </div>
-        </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-                <Budgets budgets={mockBudgets} />
-            </div>
+          <div className="xl:col-span-2">
+            <Budgets budgets={mockBudgets} />
+          </div>
+          <div className="flex flex-col gap-4">
+            <SpendingBreakdown transactions={transactions} />
+          </div>
         </div>
       </main>
     </div>
