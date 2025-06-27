@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/layout/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'Fobework',
+  title: 'FinanceFlow',
   description: 'Your personal finance tracker.',
 };
 

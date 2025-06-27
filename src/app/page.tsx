@@ -50,7 +50,7 @@ export default function LoginPage() {
             <Package className="h-7 w-7 text-primary-foreground" />
           </div>
           <div>
-            <CardTitle className="text-2xl">Welcome to Fobework</CardTitle>
+            <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
             <CardDescription>
               Enter your credentials to access your dashboard.
             </CardDescription>
