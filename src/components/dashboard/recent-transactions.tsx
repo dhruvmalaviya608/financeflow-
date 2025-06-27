@@ -127,17 +127,6 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
     }
   };
 
-  const handleGroupSelect = (groupTransactionIds: string[], select: boolean) => {
-    if (!selection || !onSelectionChange) return;
-    if (select) {
-      const newSelection = [...new Set([...selection, ...groupTransactionIds])];
-      onSelectionChange(newSelection);
-    } else {
-      const newSelection = selection.filter(id => !groupTransactionIds.includes(id));
-      onSelectionChange(newSelection);
-    }
-  };
-
   const defaultOpen = useMemo(() => groupedTransactions.map(g => g.key), [groupedTransactions]);
 
   return (
@@ -157,28 +146,13 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
           <Accordion type="multiple" className="w-full space-y-4" defaultValue={defaultOpen}>
             {groupedTransactions.map(({ key, date, transactions: dayTransactions, income, expense }) => {
               const { main: titleMain, sub: titleSub } = getGroupTitle(date);
-              const groupTransactionIds = dayTransactions.map(t => t.id);
-              const selectedInGroupCount = groupTransactionIds.filter(id => selection?.includes(id)).length;
-              const allSelected = groupTransactionIds.length > 0 && selectedInGroupCount === groupTransactionIds.length;
-              const someSelected = selectedInGroupCount > 0 && !allSelected;
-
+              
               return (
                 <AccordionItem value={key} key={key} className="border-b-0">
-                  <AccordionPrimitive.Header className="flex flex-1 items-center border-b pb-2 mb-4">
-                      {selection && onSelectionChange && (
-                          <div className="px-2">
-                              <Checkbox
-                                  checked={allSelected ? true : someSelected ? 'indeterminate' : false}
-                                  onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
-                                  className="shrink-0"
-                                  aria-label="Select all transactions in this group"
-                              />
-                          </div>
-                      )}
-                      <AccordionPrimitive.Trigger className={cn(
-                          "flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group",
-                          !selection && 'pl-2'
-                      )}>
+                  <div className={cn("flex items-center border-b pb-2 mb-4", selection && onSelectionChange && "gap-4")}>
+                    {selection && onSelectionChange && <div className="w-4 shrink-0" />}
+                    <AccordionPrimitive.Header className="flex flex-1 items-center">
+                        <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group">
                           <div className="flex items-baseline gap-3">
                               <span className="text-3xl font-bold">{titleMain}</span>
                               <span className="text-sm text-muted-foreground">{titleSub}</span>
@@ -188,8 +162,9 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
                               {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
                           </div>
                           <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                      </AccordionPrimitive.Trigger>
-                  </AccordionPrimitive.Header>
+                        </AccordionPrimitive.Trigger>
+                    </AccordionPrimitive.Header>
+                  </div>
                   <AccordionContent className="pt-4">
                     <div className="space-y-4">
                       {dayTransactions.map(transaction => (
@@ -202,7 +177,7 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
                               aria-label={`Select transaction: ${transaction.description}`}
                             />
                           )}
-                            <div className="grid gap-0.5 flex-1">
+                            <div className={cn("grid gap-0.5 flex-1", !selection && "pl-1")}>
                                 <div className="flex justify-between items-start">
                                     <p className="font-medium leading-none">{transaction.description}</p>
                                     <div className="flex items-center -mt-1 -mr-2">
