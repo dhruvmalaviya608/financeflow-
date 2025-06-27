@@ -27,6 +27,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -36,6 +37,8 @@ type RecentTransactionsProps = {
   viewMode: 'daily' | 'monthly' | 'yearly';
   onViewModeChange: (mode: 'daily' | 'monthly' | 'yearly') => void;
   enableBulkDelete?: boolean;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
 };
 
 type TransactionsByGroup = {
@@ -53,6 +56,9 @@ export default function RecentTransactions({
   onAdd, 
   viewMode, 
   onViewModeChange,
+  enableBulkDelete = false,
+  selectedIds = new Set(),
+  onSelectionChange = () => {},
 }: RecentTransactionsProps) {
 
   const groupedTransactions = useMemo(() => {
@@ -122,6 +128,21 @@ export default function RecentTransactions({
       return { main: '', sub: '' };
   };
 
+  const handleGroupSelect = (transactionIds: string[], checked: boolean) => {
+    const newSelectedIds = new Set(selectedIds);
+    if (checked) {
+      transactionIds.forEach(id => newSelectedIds.add(id));
+    } else {
+      transactionIds.forEach(id => newSelectedIds.delete(id));
+    }
+    onSelectionChange(newSelectedIds);
+  };
+  
+  const areAllInGroupSelected = (transactionIds: string[]) => {
+    if (transactionIds.length === 0) return false;
+    return transactionIds.every(id => selectedIds.has(id));
+  };
+
   const defaultOpen = useMemo(() => groupedTransactions.map(g => g.key), [groupedTransactions]);
 
   return (
@@ -142,21 +163,32 @@ export default function RecentTransactions({
             <Accordion type="multiple" className="w-full space-y-4" defaultValue={defaultOpen}>
               {groupedTransactions.map(({ key, date, transactions: dayTransactions, income, expense }) => {
                 const { main: titleMain, sub: titleSub } = getGroupTitle(date);
+                const groupTransactionIds = dayTransactions.map(t => t.id);
                 
                 return (
                   <AccordionItem value={key} key={key} className="border-b-0">
-                    <AccordionTrigger>
-                      <div className="flex flex-1 items-center justify-between">
-                        <div className="flex items-baseline gap-3">
-                            <span className="text-3xl font-bold">{titleMain}</span>
-                            <span className="text-sm text-muted-foreground">{titleSub}</span>
+                    <div className="flex items-center gap-3">
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex flex-1 items-center justify-between">
+                          <div className="flex items-baseline gap-3">
+                              <span className="text-3xl font-bold">{titleMain}</span>
+                              <span className="text-sm text-muted-foreground">{titleSub}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm font-semibold">
+                              {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
+                              {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm font-semibold">
-                            {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
-                            {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
-                        </div>
-                      </div>
-                    </AccordionTrigger>
+                      </AccordionTrigger>
+                      {enableBulkDelete && (
+                        <Checkbox
+                          checked={areAllInGroupSelected(groupTransactionIds)}
+                          onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
+                          aria-label="Select all transactions in this group"
+                          className="shrink-0"
+                        />
+                      )}
+                    </div>
                     <AccordionContent className="pt-4">
                       <div className="space-y-4">
                         {dayTransactions.map(transaction => (
