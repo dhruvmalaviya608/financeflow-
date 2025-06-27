@@ -41,6 +41,7 @@ import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 
 function UserMenu() {
   const router = useRouter();
@@ -89,11 +90,13 @@ function UserMenu() {
 }
 
 export default function DashboardPage() {
+  const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [categories, setCategories] = useState<TransactionCategory[]>(mockCategories);
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -112,7 +115,7 @@ export default function DashboardPage() {
     setAddTransactionOpen(true);
   };
   
-  const handleConfirmDelete = () => {
+  const handleConfirmDeleteTransaction = () => {
     if (!deletingTransactionId) return;
     setTransactions(prev => prev.filter(t => t.id !== deletingTransactionId));
     setDeletingTransactionId(null);
@@ -121,9 +124,34 @@ export default function DashboardPage() {
   const handleAddCategory = (category: TransactionCategory) => {
     if (category.trim() && !categories.includes(category.trim())) {
       setCategories(prev => [...prev, category.trim()].sort());
+       toast({
+          title: 'Category Added',
+          description: `"${category.trim()}" has been added to your categories.`,
+      });
     }
   };
-
+  
+  const handleEditCategory = (oldCategory: string, newCategory: string) => {
+    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
+      setCategories(prev => prev.map(c => c === oldCategory ? newCategory.trim() : c).sort());
+      setTransactions(prev => prev.map(t => t.category === oldCategory ? { ...t, category: newCategory.trim() } : t));
+       toast({
+          title: 'Category Updated',
+          description: `"${oldCategory}" has been renamed to "${newCategory.trim()}".`,
+      });
+    }
+  };
+  
+  const handleConfirmDeleteCategory = () => {
+    if (!deletingCategory) return;
+    setCategories(prev => prev.filter(c => c !== deletingCategory));
+    setDeletingCategory(null);
+    toast({
+        title: 'Category Deleted',
+        description: `"${deletingCategory}" has been deleted.`,
+        variant: 'destructive'
+    });
+  };
 
   return (
     <>
@@ -163,6 +191,8 @@ export default function DashboardPage() {
                 initialData={editingTransaction}
                 categories={categories}
                 onAddCategory={handleAddCategory}
+                onEditCategory={handleEditCategory}
+                onDeleteCategory={setDeletingCategory}
               />
             </DialogContent>
           </Dialog>
@@ -202,7 +232,21 @@ export default function DashboardPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setDeletingTransactionId(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+              <AlertDialogAction onClick={handleConfirmDeleteTransaction}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+       <AlertDialog open={!!deletingCategory} onOpenChange={(isOpen) => !isOpen && setDeletingCategory(null)}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  This will permanently delete the category "{deletingCategory}". Transactions using this category will not be deleted.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDeletingCategory(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDeleteCategory}>Delete</AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>

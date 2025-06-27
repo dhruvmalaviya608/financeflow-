@@ -25,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Transaction, TransactionCategory, Account } from '@/types';
 import { accounts } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarIcon, CreditCard, Folder, DollarSign, Pen, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, CreditCard, Folder, DollarSign, Pen, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -33,16 +33,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 const FormSchema = z.object({
   description: z.string().optional(),
@@ -61,6 +58,8 @@ type AddTransactionFormProps = {
   initialData?: Transaction | null;
   categories: TransactionCategory[];
   onAddCategory: (category: TransactionCategory) => void;
+  onEditCategory: (oldName: string, newName: string) => void;
+  onDeleteCategory: (name: string) => void;
 };
 
 const InlineDatePicker = ({ date, setDate }: { date: Date, setDate: (date: Date | undefined) => void }) => {
@@ -104,10 +103,113 @@ const InlineSelect = ({ value, onValueChange, placeholder, items }: { value: str
   );
 }
 
-export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, categories, onAddCategory }: AddTransactionFormProps) {
+const ManageCategoriesDialog = ({ categories, onAddCategory, onEditCategory, onDeleteCategory, onSelectCategory, setOpen }: { 
+    categories: TransactionCategory[],
+    onAddCategory: (category: TransactionCategory) => void;
+    onEditCategory: (oldName: string, newName: string) => void;
+    onDeleteCategory: (name: string) => void;
+    onSelectCategory: (category: string) => void;
+    setOpen: (open: boolean) => void;
+}) => {
+    const { toast } = useToast();
+    const [newCategoryName, setNewCategoryName] = React.useState('');
+    const [editingCategory, setEditingCategory] = React.useState<string | null>(null);
+    const [editingValue, setEditingValue] = React.useState('');
+
+    const handleAdd = () => {
+        const newCat = newCategoryName.trim();
+        if (newCat && !categories.includes(newCat)) {
+            onAddCategory(newCat);
+            setNewCategoryName('');
+        } else if (categories.includes(newCat)) {
+             toast({
+                title: 'Category Exists',
+                description: `Category "${newCat}" already exists.`,
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const handleEdit = (category: string) => {
+        setEditingCategory(category);
+        setEditingValue(category);
+    };
+
+    const handleSaveEdit = (oldName: string) => {
+        const newName = editingValue.trim();
+        if (newName && newName !== oldName && !categories.includes(newName)) {
+            onEditCategory(oldName, newName);
+            setEditingCategory(null);
+        } else if (categories.includes(newName) && newName !== oldName) {
+            toast({ title: 'Category Exists', description: `Category "${newName}" already exists.`, variant: 'destructive'});
+        } else {
+             setEditingCategory(null);
+        }
+    };
+
+    const handleDelete = (category: string) => {
+        onDeleteCategory(category);
+    };
+
+    const handleSelect = (category: string) => {
+        onSelectCategory(category);
+        setOpen(false);
+    }
+    
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Manage Categories</DialogTitle>
+                <DialogDescription>Add, edit, or delete your transaction categories.</DialogDescription>
+            </DialogHeader>
+            <div className="flex w-full items-center space-x-2">
+                <Input
+                    placeholder="New category name"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAdd();}}}
+                />
+                <Button type="button" onClick={handleAdd}>Add</Button>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                {categories.map((category) => (
+                <div key={category} className="flex items-center justify-between gap-2 rounded-lg p-1 group">
+                    {editingCategory === category ? (
+                        <div className="flex flex-1 items-center gap-2">
+                            <Input
+                                value={editingValue}
+                                onChange={(e) => setEditingValue(e.target.value)}
+                                onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleSaveEdit(category);}}}
+                                autoFocus
+                                className="h-8"
+                            />
+                            <Button type="button" size="icon" className="h-8 w-8" onClick={() => handleSaveEdit(category)}><Check className="h-4 w-4" /></Button>
+                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCategory(null)}><X className="h-4 w-4" /></Button>
+                        </div>
+                    ) : (
+                        <>
+                            <Button variant="link" className="p-0 h-auto font-normal text-base text-foreground" onClick={() => handleSelect(category)}>{category}</Button>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(category)}>
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(category)}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </div>
+                ))}
+            </div>
+        </DialogContent>
+    );
+};
+
+
+export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, categories, onAddCategory, onEditCategory, onDeleteCategory }: AddTransactionFormProps) {
   const { toast } = useToast();
-  const [isAddCategoryOpen, setAddCategoryOpen] = React.useState(false);
-  const [newCategoryName, setNewCategoryName] = React.useState("");
+  const [isManageCategoryOpen, setManageCategoryOpen] = React.useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -137,26 +239,6 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
       });
     }
   }, [initialData, form]);
-
-  const handleSaveNewCategory = () => {
-    const newCat = newCategoryName.trim();
-    if (newCat && !categories.includes(newCat)) {
-      onAddCategory(newCat);
-      form.setValue('category', newCat, { shouldValidate: true });
-      toast({
-          title: 'Category Added',
-          description: `"${newCat}" has been added to your categories.`,
-      });
-      setNewCategoryName("");
-      setAddCategoryOpen(false);
-    } else if (categories.includes(newCat)) {
-      toast({
-          title: 'Category Exists',
-          description: `Category "${newCat}" already exists.`,
-          variant: 'destructive',
-      });
-    }
-  };
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     onFormSubmit({
@@ -244,31 +326,21 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
                       <FormControl>
                         <InlineSelect value={field.value} onValueChange={field.onChange} placeholder="Select category" items={categories} />
                       </FormControl>
-                      <AlertDialog open={isAddCategoryOpen} onOpenChange={setAddCategoryOpen}>
-                        <AlertDialogTrigger asChild>
+                      <Dialog open={isManageCategoryOpen} onOpenChange={setManageCategoryOpen}>
+                        <DialogTrigger asChild>
                             <Button type="button" variant="ghost" size="icon" className="h-6 w-6">
                                 <Plus className="h-4 w-4" />
                             </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Add New Category</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Enter the name for the new category. This will be saved for future use.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <Input 
-                                placeholder="e.g., Health"
-                                value={newCategoryName}
-                                onChange={(e) => setNewCategoryName(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                            />
-                            <AlertDialogFooter>
-                                <AlertDialogCancel onClick={() => setNewCategoryName("")}>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleSaveNewCategory}>Save</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                        </DialogTrigger>
+                        <ManageCategoriesDialog 
+                            categories={categories}
+                            onAddCategory={onAddCategory}
+                            onEditCategory={onEditCategory}
+                            onDeleteCategory={onDeleteCategory}
+                            onSelectCategory={(category) => form.setValue('category', category, { shouldValidate: true })}
+                            setOpen={setManageCategoryOpen}
+                        />
+                      </Dialog>
                     </div>
                 </FormItem>
                 )}
