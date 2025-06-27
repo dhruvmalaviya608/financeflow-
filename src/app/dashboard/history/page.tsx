@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Transaction, TransactionCategory } from '@/types';
-import { mockTransactions, mockCategories } from '@/data/mock-data';
+import { mockTransactions, categories as mockCategories } from '@/data/mock-data';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 import {
