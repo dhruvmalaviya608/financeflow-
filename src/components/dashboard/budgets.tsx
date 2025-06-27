@@ -42,16 +42,6 @@ export function Budgets({ budgets }: BudgetsProps) {
                   </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex -space-x-2">
-                  <Avatar className="h-6 w-6 border-2 border-card">
-                    <AvatarImage data-ai-hint="person" src="https://placehold.co/40x40.png" />
-                    <AvatarFallback>A</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="h-6 w-6 border-2 border-card">
-                    <AvatarImage data-ai-hint="person" src="https://placehold.co/40x40.png" />
-                    <AvatarFallback>B</AvatarFallback>
-                  </Avatar>
-                </div>
                 <Progress value={(budget.spent / budget.goal) * 100} className="w-24 h-2" />
               </div>
             </div>
