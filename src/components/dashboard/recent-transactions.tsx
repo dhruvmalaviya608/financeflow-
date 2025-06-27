@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { MoreHorizontal, Pencil, Plus, Trash2, ChevronDown } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, Trash2, ChevronsUpDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +105,23 @@ export default function RecentTransactions({
 
     return groupsAsArray;
   }, [transactions, viewMode]);
+  
+  const allItemKeys = useMemo(() => groupedTransactions.map(g => g.key), [groupedTransactions]);
+  const [openItems, setOpenItems] = useState<string[]>(allItemKeys);
+
+  useEffect(() => {
+    setOpenItems(groupedTransactions.map(g => g.key));
+  }, [groupedTransactions]);
+
+  const areAllOpen = openItems.length === allItemKeys.length && allItemKeys.every(key => openItems.includes(key));
+
+  const toggleAll = () => {
+    if (areAllOpen) {
+      setOpenItems([]);
+    } else {
+      setOpenItems(allItemKeys);
+    }
+  };
 
   const getGroupTitle = (date: Date) => {
       if (viewMode === 'daily') {
@@ -143,14 +160,20 @@ export default function RecentTransactions({
     return transactionIds.every(id => selectedIds.has(id));
   };
 
-  const defaultOpen = useMemo(() => groupedTransactions.map(g => g.key), [groupedTransactions]);
-
   return (
     <>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-              <CardTitle>Transactions</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Transactions</CardTitle>
+                {groupedTransactions.length > 0 && (
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleAll}>
+                    <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+                    <span className="sr-only">{areAllOpen ? 'Collapse all' : 'Expand all'}</span>
+                  </Button>
+                )}
+              </div>
               <div className="flex items-center gap-1">
                   <Button variant={viewMode === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('daily')}>Daily</Button>
                   <Button variant={viewMode === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('monthly')}>Monthly</Button>
@@ -160,7 +183,12 @@ export default function RecentTransactions({
         </CardHeader>
         <CardContent>
           {groupedTransactions.length > 0 ? (
-            <Accordion type="multiple" className="w-full space-y-4" defaultValue={defaultOpen}>
+            <Accordion 
+              type="multiple" 
+              className="w-full space-y-4" 
+              value={openItems}
+              onValueChange={setOpenItems}
+            >
               {groupedTransactions.map(({ key, date, transactions: dayTransactions, income, expense }) => {
                 const { main: titleMain, sub: titleSub } = getGroupTitle(date);
                 const groupTransactionIds = dayTransactions.map(t => t.id);
