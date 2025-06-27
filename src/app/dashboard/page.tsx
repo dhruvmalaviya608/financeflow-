@@ -110,9 +110,6 @@ export default function DashboardPage() {
             />
           </DialogContent>
         </Dialog>
-        <Button variant="ghost" size="icon" className='rounded-full'>
-            <Bell className="h-5 w-5" />
-        </Button>
         <Suspense fallback={<Skeleton className="h-8 w-8 rounded-full" />}>
           <UserMenu />
         </Suspense>
