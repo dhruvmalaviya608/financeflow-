@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState } from 'react';
@@ -36,7 +35,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
-import { TransactionOverview } from '@/components/dashboard/transaction-overview';
 import { Budgets } from '@/components/dashboard/budgets';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
@@ -211,21 +209,16 @@ export default function DashboardPage() {
             </TabsList>
             <TabsContent value="overview" className="mt-4 space-y-4">
               <Overview transactions={transactions} />
-              <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-                <div className="xl:col-span-2">
-                  <TransactionOverview />
-                </div>
-                <div className="flex flex-col gap-4">
+              <div className="grid gap-4 md:gap-8 lg:grid-cols-3">
+                <div className="lg:col-span-2">
                   <RecentTransactions 
-                    transactions={transactions.slice(0, 5)} 
+                    transactions={transactions} 
                     onEdit={handleEdit}
                     onDelete={setDeletingTransactionId}
                   />
                 </div>
-                <div className="xl:col-span-2">
+                <div className="lg:col-span-1 flex flex-col gap-4">
                   <Budgets budgets={mockBudgets} />
-                </div>
-                <div className="flex flex-col gap-4">
                   <SpendingBreakdown transactions={transactions} />
                 </div>
               </div>
