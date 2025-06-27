@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -12,13 +12,15 @@ import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
-import { MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, Trash2, ArrowDownUp } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 
 type RecentTransactionsProps = {
@@ -39,10 +41,10 @@ type TransactionsByGroup = {
 };
 
 export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd, viewMode, onViewModeChange }: RecentTransactionsProps) {
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'description'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const groupedTransactions = useMemo(() => {
-    const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
     let groupBy: (t: Transaction) => string;
     if (viewMode === 'daily') {
       groupBy = (t: Transaction) => format(t.date, 'yyyy-MM-dd');
@@ -54,7 +56,8 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
       return [];
     }
     
-    const groups = sortedTransactions.reduce((acc, transaction) => {
+    // 1. Group transactions without pre-sorting
+    const groups = [...transactions].reduce((acc, transaction) => {
         const dateKey = groupBy(transaction);
         if (!acc[dateKey]) {
             acc[dateKey] = {
@@ -77,8 +80,28 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
         return acc;
     }, {} as Record<string, TransactionsByGroup>);
 
-    return Object.values(groups);
-  }, [transactions, viewMode]);
+    const groupsAsArray = Object.values(groups);
+
+    // 2. Sort transactions inside each group based on state
+    for (const group of groupsAsArray) {
+      group.transactions.sort((a, b) => {
+        let compareResult = 0;
+        if (sortBy === 'amount') {
+          compareResult = a.amount - b.amount;
+        } else if (sortBy === 'description') {
+          compareResult = a.description.localeCompare(b.description);
+        } else { // 'date'
+          compareResult = new Date(a.date).getTime() - new Date(b.date).getTime();
+        }
+        return sortOrder === 'asc' ? compareResult : -compareResult;
+      });
+    }
+
+    // 3. Sort the groups themselves by date (descending)
+    groupsAsArray.sort((a, b) => new Date(b.key).getTime() - new Date(a.key).getTime());
+
+    return groupsAsArray;
+  }, [transactions, viewMode, sortBy, sortOrder]);
 
   const getGroupTitle = (date: Date) => {
       if (viewMode === 'daily') {
@@ -108,6 +131,31 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
         <div className="flex items-center justify-between">
             <CardTitle>Transactions</CardTitle>
             <div className="flex items-center gap-1">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-9 gap-1">
+                        <ArrowDownUp className="h-4 w-4" />
+                        Sort
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                    <DropdownMenuRadioGroup value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
+                        const [newSortBy, newSortOrder] = value.split('-') as [typeof sortBy, typeof sortOrder];
+                        setSortBy(newSortBy);
+                        setSortOrder(newSortOrder);
+                    }}>
+                        <DropdownMenuRadioItem value="date-desc">Date: Newest first</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="date-asc">Date: Oldest first</DropdownMenuRadioItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioItem value="amount-desc">Amount: High to low</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="amount-asc">Amount: Low to high</DropdownMenuRadioItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioItem value="description-asc">Description: A-Z</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="description-desc">Description: Z-A</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Button variant={viewMode === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('daily')}>Daily</Button>
                 <Button variant={viewMode === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('monthly')}>Monthly</Button>
                 <Button variant={viewMode === 'yearly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('yearly')}>Yearly</Button>
