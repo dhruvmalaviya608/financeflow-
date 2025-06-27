@@ -25,19 +25,8 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
+  AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -47,7 +36,6 @@ type RecentTransactionsProps = {
   viewMode: 'daily' | 'monthly' | 'yearly';
   onViewModeChange: (mode: 'daily' | 'monthly' | 'yearly') => void;
   enableBulkDelete?: boolean;
-  onDeleteMultiple?: (ids: string[]) => void;
 };
 
 type TransactionsByGroup = {
@@ -65,36 +53,7 @@ export default function RecentTransactions({
   onAdd, 
   viewMode, 
   onViewModeChange,
-  enableBulkDelete = false,
-  onDeleteMultiple
 }: RecentTransactionsProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-
-  // Clear selections when transactions change to avoid stale state
-  useEffect(() => {
-    setSelectedIds(new Set());
-  }, [transactions]);
-  
-  const handleSelectTransaction = (id: string, isSelected: boolean) => {
-    setSelectedIds(prev => {
-      const newSet = new Set(prev);
-      if (isSelected) {
-        newSet.add(id);
-      } else {
-        newSet.delete(id);
-      }
-      return newSet;
-    });
-  };
-
-  const handleConfirmDelete = () => {
-    if (selectedIds.size > 0 && onDeleteMultiple) {
-      onDeleteMultiple(Array.from(selectedIds));
-      setSelectedIds(new Set());
-    }
-    setIsConfirmingDelete(false);
-  };
 
   const groupedTransactions = useMemo(() => {
     let groupBy: (t: Transaction) => string;
@@ -172,12 +131,6 @@ export default function RecentTransactions({
           <div className="flex items-center justify-between">
               <CardTitle>Transactions</CardTitle>
               <div className="flex items-center gap-1">
-                  {enableBulkDelete && selectedIds.size > 0 && (
-                    <Button variant="destructive" size="sm" onClick={() => setIsConfirmingDelete(true)}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete ({selectedIds.size})
-                    </Button>
-                  )}
                   <Button variant={viewMode === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('daily')}>Daily</Button>
                   <Button variant={viewMode === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('monthly')}>Monthly</Button>
                   <Button variant={viewMode === 'yearly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('yearly')}>Yearly</Button>
@@ -192,34 +145,23 @@ export default function RecentTransactions({
                 
                 return (
                   <AccordionItem value={key} key={key} className="border-b-0">
-                    <AccordionPrimitive.Header className="flex flex-1 items-center border-b pb-2 mb-4">
-                      <AccordionPrimitive.Trigger asChild>
-                         <button className="flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group">
-                            <div className="flex items-baseline gap-3">
-                                <span className="text-3xl font-bold">{titleMain}</span>
-                                <span className="text-sm text-muted-foreground">{titleSub}</span>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm font-semibold">
-                                {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
-                                {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
-                            </div>
-                            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                          </button>
-                      </AccordionPrimitive.Trigger>
-                    </AccordionPrimitive.Header>
+                    <AccordionTrigger>
+                      <div className="flex flex-1 items-center justify-between">
+                        <div className="flex items-baseline gap-3">
+                            <span className="text-3xl font-bold">{titleMain}</span>
+                            <span className="text-sm text-muted-foreground">{titleSub}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm font-semibold">
+                            {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
+                            {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+                        </div>
+                      </div>
+                    </AccordionTrigger>
                     <AccordionContent className="pt-4">
                       <div className="space-y-4">
                         {dayTransactions.map(transaction => (
                           <div key={transaction.id} className="group flex items-start gap-4">
-                              {enableBulkDelete && (
-                                <Checkbox
-                                  checked={selectedIds.has(transaction.id)}
-                                  onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
-                                  className="mt-1"
-                                  aria-label={`Select transaction ${transaction.description}`}
-                                />
-                              )}
-                              <div className={cn("grid gap-0.5 flex-1", enableBulkDelete ? '' : 'pl-1')}>
+                              <div className="grid gap-0.5 flex-1">
                                   <div className="flex justify-between items-start">
                                       <p className="font-medium leading-none">{transaction.description}</p>
                                       <div className="flex items-center -mt-1 -mr-2">
@@ -268,21 +210,6 @@ export default function RecentTransactions({
           )}
         </CardContent>
       </Card>
-
-      <AlertDialog open={isConfirmingDelete} onOpenChange={setIsConfirmingDelete}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete {selectedIds.size} transaction{selectedIds.size > 1 ? 's' : ''}.
-              </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setIsConfirmingDelete(false)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

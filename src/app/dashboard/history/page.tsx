@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function HistoryPage() {
   const { 
@@ -47,7 +48,26 @@ export default function HistoryPage() {
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
   const [newTransactionDate, setNewTransactionDate] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
+  const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
+
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  const [isConfirmingDeleteAll, setIsConfirmingDeleteAll] = useState(false);
+
+  const displayedTransactions = searchQuery
+    ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    : transactions;
+
+  const handleSelectAllChange = (checked: boolean) => {
+    setIsAllSelected(checked);
+  };
+
+  const handleConfirmDeleteAll = () => {
+    if (!displayedTransactions.length) return;
+    const idsToDelete = displayedTransactions.map(t => t.id);
+    deleteMultipleTransactions(idsToDelete);
+    setIsAllSelected(false);
+    setIsConfirmingDeleteAll(false);
+  };
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -80,16 +100,34 @@ export default function HistoryPage() {
     setAddTransactionOpen(true);
   }
 
-  const displayedTransactions = searchQuery
-    ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    : transactions;
-
   return (
     <>
       <div className="flex w-full flex-col">
         <header className="sticky top-0 flex h-14 items-center justify-between gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <h1 className="text-xl font-semibold">History</h1>
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-4 ml-auto">
+            {isAllSelected && displayedTransactions.length > 0 ? (
+              <Button variant="destructive" size="sm" onClick={() => setIsConfirmingDeleteAll(true)}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete All ({displayedTransactions.length})
+              </Button>
+            ) : (
+              <div className="flex items-center space-x-2">
+                  <Checkbox
+                      id="select-all"
+                      checked={isAllSelected}
+                      onCheckedChange={(checked) => handleSelectAllChange(!!checked)}
+                      disabled={displayedTransactions.length === 0}
+                      aria-label="Select all transactions"
+                  />
+                  <label
+                      htmlFor="select-all"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                      Select All
+                  </label>
+              </div>
+            )}
             <div className="relative flex-1 md:grow-0">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -142,8 +180,7 @@ export default function HistoryPage() {
             onAdd={handleAddTransaction}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            enableBulkDelete={true}
-            onDeleteMultiple={deleteMultipleTransactions}
+            enableBulkDelete={false}
           />
         </main>
       </div>
@@ -161,6 +198,21 @@ export default function HistoryPage() {
               <AlertDialogAction onClick={handleConfirmDeleteTransaction}>Delete</AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isConfirmingDeleteAll} onOpenChange={setIsConfirmingDeleteAll}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete all {displayedTransactions.length} displayed transactions.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsConfirmingDeleteAll(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDeleteAll}>Delete All</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
 
        <AlertDialog open={!!deletingCategory} onOpenChange={(isOpen) => !isOpen && setDeletingCategory(null)}>
