@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useState } from 'react';
@@ -42,6 +43,8 @@ import { AddTransactionForm } from '@/components/dashboard/add-transaction-form'
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CalendarView from '@/components/dashboard/calendar-view';
 
 function UserMenu() {
   const router = useRouter();
@@ -157,7 +160,7 @@ export default function DashboardPage() {
     <>
       <div className="flex min-h-screen w-full flex-col">
         <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-          <h1 className="text-xl font-semibold">Overview</h1>
+          <h1 className="text-xl font-semibold">Dashboard</h1>
           <div className="relative ml-auto flex-1 md:grow-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -201,25 +204,36 @@ export default function DashboardPage() {
           </Suspense>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-          <Overview transactions={transactions} />
-          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-              <TransactionOverview />
-            </div>
-            <div className="flex flex-col gap-4">
-              <RecentTransactions 
-                transactions={transactions.slice(0, 5)} 
-                onEdit={handleEdit}
-                onDelete={setDeletingTransactionId}
-              />
-            </div>
-            <div className="xl:col-span-2">
-              <Budgets budgets={mockBudgets} />
-            </div>
-            <div className="flex flex-col gap-4">
-              <SpendingBreakdown transactions={transactions} />
-            </div>
-          </div>
+          <Tabs defaultValue="overview">
+            <TabsList className="grid w-full grid-cols-2 md:w-[300px]">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview" className="mt-4 space-y-4">
+              <Overview transactions={transactions} />
+              <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+                <div className="xl:col-span-2">
+                  <TransactionOverview />
+                </div>
+                <div className="flex flex-col gap-4">
+                  <RecentTransactions 
+                    transactions={transactions.slice(0, 5)} 
+                    onEdit={handleEdit}
+                    onDelete={setDeletingTransactionId}
+                  />
+                </div>
+                <div className="xl:col-span-2">
+                  <Budgets budgets={mockBudgets} />
+                </div>
+                <div className="flex flex-col gap-4">
+                  <SpendingBreakdown transactions={transactions} />
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="calendar" className="mt-4">
+              <CalendarView transactions={transactions} />
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
       <AlertDialog open={!!deletingTransactionId} onOpenChange={(isOpen) => !isOpen && setDeletingTransactionId(null)}>
