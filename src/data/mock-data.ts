@@ -9,22 +9,7 @@ const generateRandomDateThisMonth = () => {
   return new Date(today.getFullYear(), today.getMonth(), day);
 }
 
-export const mockTransactions: Transaction[] = [
-  { id: '1', date: generateRandomDateThisMonth(), description: 'Monthly Salary', amount: 5000, type: 'income', category: 'Salary', account: 'Bank', currency: 'USD' },
-  { id: '2', date: generateRandomDateThisMonth(), description: 'Grocery Shopping', amount: 150.75, type: 'expense', category: 'Food', account: 'Card', currency: 'USD' },
-  { id: '3', date: generateRandomDateThisMonth(), description: 'Gasoline', amount: 45.50, type: 'expense', category: 'Transport', account: 'Card', currency: 'USD' },
-  { id: '4', date: generateRandomDateThisMonth(), description: 'Electricity Bill', amount: 75.00, type: 'expense', category: 'Utilities', account: 'Bank', currency: 'USD' },
-  { id: '5', date: generateRandomDateThisMonth(), description: 'Movie Tickets', amount: 30.00, type: 'expense', category: 'Entertainment', account: 'Card', currency: 'USD' },
-  { id: '6', date: generateRandomDateThisMonth(), description: 'New T-shirt', amount: 25.00, type: 'expense', category: 'Shopping', account: 'Card', currency: 'USD' },
-  { id: '7', date: generateRandomDateThisMonth(), description: 'Lunch with friends', amount: 55.20, type: 'expense', category: 'Food', account: 'Cash', currency: 'USD' },
-  { id: '8', date: generateRandomDateThisMonth(), description: 'Internet Bill', amount: 60.00, type: 'expense', category: 'Utilities', account: 'Bank', currency: 'USD' },
-  { id: '9', date: generateRandomDateThisMonth(), description: 'Freelance Project', amount: 750, type: 'income', category: 'Other', account: 'Bank', currency: 'USD' },
-  { id: '10', date: generateRandomDateThisMonth(), description: 'Bus Fare', amount: 22.50, type: 'expense', category: 'Transport', account: 'Cash', currency: 'USD' },
-  { id: '11', date: new Date('2024-07-15'), description: 'Dinner Out', amount: 88.00, type: 'expense', category: 'Food', account: 'Card', currency: 'USD' },
-  { id: '12', date: new Date('2024-07-14'), description: 'New book', amount: 15.00, type: 'expense', category: 'Shopping', account: 'Card', currency: 'USD' },
-  { id: '13', date: new Date('2024-07-13'), description: 'Coffee', amount: 5.50, type: 'expense', category: 'Food', account: 'Cash', currency: 'USD' },
-];
-
+export const mockTransactions: Transaction[] = [];
 
 const spent = mockTransactions
   .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === today.getMonth())
@@ -52,8 +37,8 @@ export const generate14DayTransactionData = () => {
 };
 
 export const mockBudgets: BudgetCategory[] = [
-    { name: 'Groceries', spent: 320, goal: 500, icon: Utensils },
-    { name: 'Transport', spent: 80, goal: 150, icon: Car },
-    { name: 'Shopping', spent: 120, goal: 200, icon: ShoppingBag },
-    { name: 'Utilities', spent: 150, goal: 150, icon: Wrench },
+    { name: 'Groceries', spent: 0, goal: 500, icon: Utensils },
+    { name: 'Transport', spent: 0, goal: 150, icon: Car },
+    { name: 'Shopping', spent: 0, goal: 200, icon: ShoppingBag },
+    { name: 'Utilities', spent: 0, goal: 150, icon: Wrench },
 ]
