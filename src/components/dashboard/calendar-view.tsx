@@ -32,7 +32,7 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
   const [selectedTransactions, setSelectedTransactions] = useState<Transaction[]>([]);
   const [selectedDateForDialog, setSelectedDateForDialog] = useState<Date | null>(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [view, setView] = useState<'monthly' | 'weekly' | 'daily' | 'total'>('monthly');
+  const [view, setView] = useState<'monthly' | 'weekly' | 'daily' | 'total' | 'yearly'>('monthly');
   const [selectedDay, setSelectedDay] = useState<Date>(month);
 
   useEffect(() => {
@@ -76,7 +76,10 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
       const weekStart = startOfWeek(selectedDay);
       const weekEnd = endOfWeek(selectedDay);
       statsTxs = transactions.filter(t => isWithinInterval(t.date, { start: weekStart, end: weekEnd }));
-    } else { // monthly or total
+    } else if (view === 'yearly') {
+      statsTxs = transactions.filter(t => t.date.getFullYear() === month.getFullYear());
+    }
+     else { // monthly or total
       statsTxs = transactions.filter((t) => isSameMonth(t.date, month));
     }
 
@@ -176,6 +179,7 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
                 <Button variant={view === 'weekly' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('weekly')}>Weekly</Button>
                 <Button variant={view === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('daily')}>Daily</Button>
                 <Button variant={view === 'total' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('total')}>Total</Button>
+                <Button variant={view === 'yearly' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('yearly')}>Yearly</Button>
             </div>
             <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
