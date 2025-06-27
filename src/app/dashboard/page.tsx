@@ -34,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, X } from 'lucide-react';
 import { Budgets } from '@/components/dashboard/budgets';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
@@ -43,6 +43,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CalendarView from '@/components/dashboard/calendar-view';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { formatCurrency } from '@/lib/utils';
 
 function UserMenu() {
   const router = useRouter();
@@ -99,6 +101,10 @@ export default function DashboardPage() {
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
   const [newTransactionDate, setNewTransactionDate] = useState<Date | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTransaction, setActiveTransaction] = useState<Transaction | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -161,6 +167,31 @@ export default function DashboardPage() {
     setAddTransactionOpen(true);
   }
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setActiveTransaction(null);
+    setIsSearchOpen(query.length > 0);
+  };
+
+  const handleSuggestionClick = (transaction: Transaction) => {
+    setActiveTransaction(transaction);
+    setSearchQuery(transaction.description);
+    setIsSearchOpen(false);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setActiveTransaction(null);
+    setIsSearchOpen(false);
+  };
+
+  const displayedTransactions = activeTransaction ? [activeTransaction] : transactions;
+
+  const searchSuggestions = searchQuery.length > 0 && !activeTransaction
+    ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
+
   return (
     <>
       <div className="flex min-h-screen w-full flex-col">
@@ -168,11 +199,38 @@ export default function DashboardPage() {
           <h1 className="text-xl font-semibold">Dashboard</h1>
           <div className="relative ml-auto flex-1 md:grow-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-            />
+            <Popover open={isSearchOpen && searchSuggestions.length > 0} onOpenChange={setIsSearchOpen}>
+                <PopoverTrigger asChild>
+                    <Input
+                      type="search"
+                      placeholder="Search transactions..."
+                      className="w-full rounded-lg bg-background pl-8 pr-8 md:w-[200px] lg:w-[320px]"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      onFocus={() => { if (searchQuery.length > 0 && !activeTransaction) setIsSearchOpen(true); }}
+                    />
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] lg:w-[320px] p-0" align="start">
+                    <div className="flex flex-col">
+                        {searchSuggestions.slice(0, 7).map(t => (
+                            <Button
+                                key={t.id}
+                                variant="ghost"
+                                className="justify-between font-normal p-2 h-auto"
+                                onClick={() => handleSuggestionClick(t)}
+                            >
+                                <span>{t.description}</span>
+                                <span className="text-sm text-muted-foreground">{formatCurrency(t.amount, t.currency)}</span>
+                            </Button>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
+            {searchQuery && (
+                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={handleClearSearch}>
+                    <X className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            )}
           </div>
           <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
             setAddTransactionOpen(isOpen);
@@ -217,11 +275,11 @@ export default function DashboardPage() {
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-4 space-y-4">
-              <Overview transactions={transactions} />
+              <Overview transactions={displayedTransactions} />
               <div className="grid gap-4 md:gap-8 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                   <RecentTransactions 
-                    transactions={transactions} 
+                    transactions={displayedTransactions} 
                     onEdit={handleEdit}
                     onDelete={setDeletingTransactionId}
                     onAdd={handleAddTransaction}
@@ -229,13 +287,13 @@ export default function DashboardPage() {
                 </div>
                 <div className="lg:col-span-1 flex flex-col gap-4">
                   <Budgets budgets={mockBudgets} />
-                  <SpendingBreakdown transactions={transactions} />
+                  <SpendingBreakdown transactions={displayedTransactions} />
                 </div>
               </div>
             </TabsContent>
             <TabsContent value="calendar" className="mt-4">
               <CalendarView 
-                transactions={transactions}
+                transactions={displayedTransactions}
                 onEdit={handleEdit}
                 onDelete={setDeletingTransactionId}
               />
