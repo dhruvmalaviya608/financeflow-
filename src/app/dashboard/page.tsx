@@ -36,7 +36,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, X } from 'lucide-react';
+import { Search, Plus, X, Trash2 } from 'lucide-react';
 import { Budgets } from '@/components/dashboard/budgets';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
@@ -109,6 +109,7 @@ export default function DashboardPage() {
     addTransaction, 
     editTransaction, 
     deleteTransaction, 
+    deleteMultipleTransactions,
     addCategory, 
     editCategory,
     deleteCategory,
@@ -128,6 +129,8 @@ export default function DashboardPage() {
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('daily');
+  const [selection, setSelection] = useState<string[]>([]);
+  const [isBulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
 
   const handleMonthChange = (monthValue: string) => {
       const monthIndex = parseInt(monthValue, 10);
@@ -164,6 +167,13 @@ export default function DashboardPage() {
     setDeletingCategory(null);
   };
 
+  const handleConfirmBulkDelete = () => {
+    if (selection.length === 0) return;
+    deleteMultipleTransactions(selection);
+    setSelection([]);
+    setBulkDeleteConfirmOpen(false);
+  };
+
   const handleAddTransaction = (date?: Date) => {
     setEditingTransaction(null);
     setNewTransactionDate(date || null);
@@ -193,6 +203,7 @@ export default function DashboardPage() {
     setSearchQuery('');
     setActiveTransaction(null);
     setIsSearchOpen(false);
+    setSelection([]);
   };
 
   const filteredTransactions = useMemo(() => {
@@ -293,84 +304,92 @@ export default function DashboardPage() {
                   </SelectContent>
               </Select>
           </div>
-          <div className="relative ml-auto flex-1 md:grow-0">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Popover open={isSearchOpen && searchSuggestions.length > 0} onOpenChange={setIsSearchOpen}>
-                <PopoverTrigger asChild>
-                    <Input
-                      ref={searchInputRef}
-                      type="search"
-                      placeholder="Search transactions..."
-                      className="w-full rounded-lg bg-background pl-8 pr-8 md:w-[200px] lg:w-[320px]"
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      onFocus={() => { if (searchQuery.length > 0 && searchSuggestions.length > 0) setIsSearchOpen(true); }}
-                      onKeyDown={handleSearchKeyDown}
-                    />
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[200px] lg:w-[320px] p-0" 
-                  align="start"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                >
-                    <div className="flex flex-col">
-                        {searchSuggestions.slice(0, 7).map((t, index) => (
-                            <Button
-                                key={t.id}
-                                ref={el => suggestionRefs.current[index] = el}
-                                variant="ghost"
-                                className="justify-between font-normal p-2 h-auto"
-                                onClick={() => handleSuggestionClick(t)}
-                                onKeyDown={(e) => handleSuggestionKeyDown(e, index)}
-                            >
-                                <span>{t.description}</span>
-                                <span className="text-sm text-muted-foreground">{formatCurrency(t.amount, t.currency)}</span>
-                            </Button>
-                        ))}
-                    </div>
-                </PopoverContent>
-            </Popover>
-            {searchQuery && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={handleClearSearch}>
-                    <X className="h-4 w-4 text-muted-foreground" />
-                </Button>
-            )}
-          </div>
-          <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
-            setAddTransactionOpen(isOpen);
-            if (!isOpen) {
-              setEditingTransaction(null);
-              setNewTransactionDate(null);
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-1" onClick={() => handleAddTransaction()}>
-                <Plus className="h-4 w-4" />
-                Add Transaction
+          <div className="flex items-center gap-2 ml-auto">
+            <div className="relative flex-1 md:grow-0">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Popover open={isSearchOpen && searchSuggestions.length > 0} onOpenChange={setIsSearchOpen}>
+                  <PopoverTrigger asChild>
+                      <Input
+                        ref={searchInputRef}
+                        type="search"
+                        placeholder="Search transactions..."
+                        className="w-full rounded-lg bg-background pl-8 pr-8 md:w-[200px] lg:w-[320px]"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        onFocus={() => { if (searchQuery.length > 0 && searchSuggestions.length > 0) setIsSearchOpen(true); }}
+                        onKeyDown={handleSearchKeyDown}
+                      />
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-[200px] lg:w-[320px] p-0" 
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                      <div className="flex flex-col">
+                          {searchSuggestions.slice(0, 7).map((t, index) => (
+                              <Button
+                                  key={t.id}
+                                  ref={el => suggestionRefs.current[index] = el}
+                                  variant="ghost"
+                                  className="justify-between font-normal p-2 h-auto"
+                                  onClick={() => handleSuggestionClick(t)}
+                                  onKeyDown={(e) => handleSuggestionKeyDown(e, index)}
+                              >
+                                  <span>{t.description}</span>
+                                  <span className="text-sm text-muted-foreground">{formatCurrency(t.amount, t.currency)}</span>
+                              </Button>
+                          ))}
+                      </div>
+                  </PopoverContent>
+              </Popover>
+              {searchQuery && (
+                  <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={handleClearSearch}>
+                      <X className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+              )}
+            </div>
+            {selection.length > 0 && (
+              <Button variant="destructive" size="sm" className="gap-1" onClick={() => setBulkDeleteConfirmOpen(true)}>
+                <Trash2 className="h-4 w-4" />
+                Delete ({selection.length})
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingTransaction ? 'Edit transaction' : 'Add a new transaction'}</DialogTitle>
-                <DialogDescription>
-                  {editingTransaction ? 'Update the details below.' : 'Fill in the details below to log a new income or expense.'}
-                </DialogDescription>
-              </DialogHeader>
-              <AddTransactionForm 
-                onFormSubmit={handleSaveTransaction}
-                setDialogOpen={setAddTransactionOpen}
-                initialData={editingTransaction}
-                transactionDate={newTransactionDate}
-                categories={categories}
-                onAddCategory={addCategory}
-                onEditCategory={editCategory}
-                onDeleteCategory={setDeletingCategory}
-              />
-            </DialogContent>
-          </Dialog>
-          <Suspense fallback={<Skeleton className="h-10 w-24 rounded-full" />}>
-            <UserMenu />
-          </Suspense>
+            )}
+            <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
+              setAddTransactionOpen(isOpen);
+              if (!isOpen) {
+                setEditingTransaction(null);
+                setNewTransactionDate(null);
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1" onClick={() => handleAddTransaction()}>
+                  <Plus className="h-4 w-4" />
+                  Add Transaction
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingTransaction ? 'Edit transaction' : 'Add a new transaction'}</DialogTitle>
+                  <DialogDescription>
+                    {editingTransaction ? 'Update the details below.' : 'Fill in the details below to log a new income or expense.'}
+                  </DialogDescription>
+                </DialogHeader>
+                <AddTransactionForm 
+                  onFormSubmit={handleSaveTransaction}
+                  setDialogOpen={setAddTransactionOpen}
+                  initialData={editingTransaction}
+                  transactionDate={newTransactionDate}
+                  categories={categories}
+                  onAddCategory={addCategory}
+                  onEditCategory={editCategory}
+                  onDeleteCategory={setDeletingCategory}
+                />
+              </DialogContent>
+            </Dialog>
+            <Suspense fallback={<Skeleton className="h-10 w-24 rounded-full" />}>
+              <UserMenu />
+            </Suspense>
+          </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
           <Tabs defaultValue="overview">
@@ -389,6 +408,8 @@ export default function DashboardPage() {
                     onAdd={handleAddTransaction}
                     viewMode={viewMode}
                     onViewModeChange={handleViewModeChange}
+                    selection={selection}
+                    onSelectionChange={setSelection}
                   />
                 </div>
                 <div className="lg:col-span-1 flex flex-col gap-4">
@@ -438,10 +459,20 @@ export default function DashboardPage() {
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
+      <AlertDialog open={isBulkDeleteConfirmOpen} onOpenChange={setBulkDeleteConfirmOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete {selection.length} selected transaction{selection.length > 1 ? 's' : ''}.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setBulkDeleteConfirmOpen(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmBulkDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
-
-    
-
-    
