@@ -2,6 +2,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import {
   Card,
   CardContent,
@@ -10,9 +11,9 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { MoreHorizontal, Pencil, Plus, Trash2, ArrowDownUp } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, Trash2, ArrowDownUp, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +27,6 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -205,27 +205,32 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
 
               return (
                 <AccordionItem value={key} key={key} className="border-b-0">
-                  <AccordionTrigger className="hover:no-underline py-0 font-normal border-b pb-2 mb-4">
-                      <div className="flex items-center flex-1 gap-3">
-                        {selection && onSelectionChange && (
-                          <Checkbox
-                            checked={allSelected ? true : someSelected ? 'indeterminate' : false}
-                            onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
-                            className="shrink-0"
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label="Select all transactions in this group"
-                          />
-                        )}
-                        <div className="flex items-baseline gap-3">
-                          <span className="text-3xl font-bold">{titleMain}</span>
-                          <span className="text-sm text-muted-foreground">{titleSub}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm font-semibold">
-                        {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
-                        {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
-                      </div>
-                  </AccordionTrigger>
+                  <AccordionPrimitive.Header className="flex flex-1 items-center border-b pb-2 mb-4">
+                      {selection && onSelectionChange && (
+                          <div className="px-2">
+                              <Checkbox
+                                  checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                                  onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
+                                  className="shrink-0"
+                                  aria-label="Select all transactions in this group"
+                              />
+                          </div>
+                      )}
+                      <AccordionPrimitive.Trigger className={cn(
+                          "flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group",
+                          !selection && 'pl-2'
+                      )}>
+                          <div className="flex items-baseline gap-3">
+                              <span className="text-3xl font-bold">{titleMain}</span>
+                              <span className="text-sm text-muted-foreground">{titleSub}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm font-semibold">
+                              {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
+                              {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+                          </div>
+                          <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                      </AccordionPrimitive.Trigger>
+                  </AccordionPrimitive.Header>
                   <AccordionContent className="pt-4">
                     <div className="space-y-4">
                       {dayTransactions.map(transaction => (
