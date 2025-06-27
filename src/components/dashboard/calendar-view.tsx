@@ -160,10 +160,10 @@ export default function CalendarView({ transactions }: { transactions: Transacti
             className="p-0"
             classNames={{
               table: 'w-full border-collapse',
-              head_row: 'flex w-full border-b',
-              head_cell: 'flex-1 text-muted-foreground font-normal text-xs text-center p-2',
-              row: 'flex w-full',
-              cell: 'flex-1 border-t border-l first:border-l-0 relative',
+              head_row: 'grid grid-cols-7 w-full border-b',
+              head_cell: 'text-muted-foreground font-normal text-xs text-center p-2',
+              row: 'grid grid-cols-7 w-full',
+              cell: 'border-t border-l first:border-l-0 relative',
               day: 'h-24 md:h-28 w-full p-0',
               day_selected: '',
               day_today: 'bg-accent/50',
