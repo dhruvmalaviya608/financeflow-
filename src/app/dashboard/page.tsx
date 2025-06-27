@@ -220,7 +220,11 @@ export default function DashboardPage() {
                       onFocus={() => { if (searchQuery.length > 0 && searchSuggestions.length > 0) setIsSearchOpen(true); }}
                     />
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] lg:w-[320px] p-0" align="start">
+                <PopoverContent 
+                  className="w-[200px] lg:w-[320px] p-0" 
+                  align="start"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
                     <div className="flex flex-col">
                         {searchSuggestions.slice(0, 7).map(t => (
                             <Button
