@@ -3,8 +3,9 @@
 
 import { Suspense, useState, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { Transaction, TransactionCategory } from '@/types';
-import { mockTransactions, mockBudgets, categories as mockCategories } from '@/data/mock-data';
+import type { Transaction } from '@/types';
+import { useTransactions } from '@/context/transactions-context';
+import { mockBudgets } from '@/data/mock-data';
 import Overview from '@/components/dashboard/overview';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import { Button } from '@/components/ui/button';
@@ -41,7 +42,6 @@ import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CalendarView from '@/components/dashboard/calendar-view';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -103,9 +103,17 @@ const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, i) => (currentYear - i).toString());
 
 export default function DashboardPage() {
-  const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [categories, setCategories] = useState<TransactionCategory[]>(mockCategories);
+  const { 
+    transactions, 
+    categories, 
+    addTransaction, 
+    editTransaction, 
+    deleteTransaction, 
+    addCategory, 
+    editCategory,
+    deleteCategory,
+  } = useTransactions();
+
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
@@ -133,13 +141,9 @@ export default function DashboardPage() {
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
-      setTransactions(prev => prev.map(t => t.id === id ? { ...data, id } : t));
+      editTransaction(data, id);
     } else {
-      const newTransaction: Transaction = {
-        ...data,
-        id: (transactions.length + 1).toString() + Math.random(), // Not robust, but ok for mock
-      };
-      setTransactions(prev => [newTransaction, ...prev]);
+      addTransaction(data);
     }
   };
   
@@ -150,40 +154,14 @@ export default function DashboardPage() {
   
   const handleConfirmDeleteTransaction = () => {
     if (!deletingTransactionId) return;
-    setTransactions(prev => prev.filter(t => t.id !== deletingTransactionId));
+    deleteTransaction(deletingTransactionId);
     setDeletingTransactionId(null);
   };
 
-  const handleAddCategory = (category: TransactionCategory) => {
-    if (category.trim() && !categories.includes(category.trim())) {
-      setCategories(prev => [...prev, category.trim()].sort());
-       toast({
-          title: 'Category Added',
-          description: `"${category.trim()}" has been added to your categories.`,
-      });
-    }
-  };
-  
-  const handleEditCategory = (oldCategory: string, newCategory: string) => {
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      setCategories(prev => prev.map(c => c === oldCategory ? newCategory.trim() : c).sort());
-      setTransactions(prev => prev.map(t => t.category === oldCategory ? { ...t, category: newCategory.trim() } : t));
-       toast({
-          title: 'Category Updated',
-          description: `"${oldCategory}" has been renamed to "${newCategory.trim()}".`,
-      });
-    }
-  };
-  
   const handleConfirmDeleteCategory = () => {
     if (!deletingCategory) return;
-    setCategories(prev => prev.filter(c => c !== deletingCategory));
+    deleteCategory(deletingCategory);
     setDeletingCategory(null);
-    toast({
-        title: 'Category Deleted',
-        description: `"${deletingCategory}" has been deleted.`,
-        variant: 'destructive'
-    });
   };
 
   const handleAddTransaction = (date?: Date) => {
@@ -377,15 +355,15 @@ export default function DashboardPage() {
                 <DialogDescription>
                   {editingTransaction ? 'Update the details below.' : 'Fill in the details below to log a new income or expense.'}
                 </DialogDescription>
-              </DialogHeader>
+              </Header>
               <AddTransactionForm 
                 onFormSubmit={handleSaveTransaction}
                 setDialogOpen={setAddTransactionOpen}
                 initialData={editingTransaction}
                 transactionDate={newTransactionDate}
                 categories={categories}
-                onAddCategory={handleAddCategory}
-                onEditCategory={handleEditCategory}
+                onAddCategory={addCategory}
+                onEditCategory={editCategory}
                 onDeleteCategory={setDeletingCategory}
               />
             </DialogContent>

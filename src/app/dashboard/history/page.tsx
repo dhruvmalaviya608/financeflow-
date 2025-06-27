@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { Transaction, TransactionCategory } from '@/types';
-import { mockTransactions, categories as mockCategories } from '@/data/mock-data';
+import type { Transaction } from '@/types';
+import { useTransactions } from '@/context/transactions-context';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 import {
@@ -23,15 +23,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Plus, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function HistoryPage() {
-  const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [categories, setCategories] = useState<TransactionCategory[]>(mockCategories);
+  const { 
+    transactions, 
+    categories, 
+    addTransaction, 
+    editTransaction, 
+    deleteTransaction, 
+    addCategory, 
+    editCategory,
+    deleteCategory,
+  } = useTransactions();
+  
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
@@ -41,13 +48,9 @@ export default function HistoryPage() {
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
-      setTransactions(prev => prev.map(t => t.id === id ? { ...data, id } : t));
+      editTransaction(data, id);
     } else {
-      const newTransaction: Transaction = {
-        ...data,
-        id: (transactions.length + 1).toString() + Math.random(), // Not robust, but ok for mock
-      };
-      setTransactions(prev => [newTransaction, ...prev]);
+      addTransaction(data);
     }
   };
 
@@ -58,40 +61,14 @@ export default function HistoryPage() {
 
   const handleConfirmDeleteTransaction = () => {
     if (!deletingTransactionId) return;
-    setTransactions(prev => prev.filter(t => t.id !== deletingTransactionId));
+    deleteTransaction(deletingTransactionId);
     setDeletingTransactionId(null);
-  };
-  
-  const handleAddCategory = (category: TransactionCategory) => {
-    if (category.trim() && !categories.includes(category.trim())) {
-      setCategories(prev => [...prev, category.trim()].sort());
-       toast({
-          title: 'Category Added',
-          description: `"${category.trim()}" has been added to your categories.`,
-      });
-    }
-  };
-  
-  const handleEditCategory = (oldCategory: string, newCategory: string) => {
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      setCategories(prev => prev.map(c => c === oldCategory ? newCategory.trim() : c).sort());
-      setTransactions(prev => prev.map(t => t.category === oldCategory ? { ...t, category: newCategory.trim() } : t));
-       toast({
-          title: 'Category Updated',
-          description: `"${oldCategory}" has been renamed to "${newCategory.trim()}".`,
-      });
-    }
   };
   
   const handleConfirmDeleteCategory = () => {
     if (!deletingCategory) return;
-    setCategories(prev => prev.filter(c => c !== deletingCategory));
+    deleteCategory(deletingCategory);
     setDeletingCategory(null);
-    toast({
-        title: 'Category Deleted',
-        description: `"${deletingCategory}" has been deleted.`,
-        variant: 'destructive'
-    });
   };
 
   const handleAddTransaction = (date?: Date) => {
@@ -146,8 +123,8 @@ export default function HistoryPage() {
                   initialData={editingTransaction}
                   transactionDate={newTransactionDate}
                   categories={categories}
-                  onAddCategory={handleAddCategory}
-                  onEditCategory={handleEditCategory}
+                  onAddCategory={addCategory}
+                  onEditCategory={editCategory}
                   onDeleteCategory={setDeletingCategory}
                 />
               </DialogContent>
