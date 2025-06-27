@@ -93,7 +93,7 @@ export default function CalendarView({ transactions }: { transactions: Transacti
     };
 
     return (
-      <div className="flex flex-col h-full w-full p-1.5" onClick={() => handleDayClick(date)}>
+      <div className="flex flex-col h-full w-full p-1.5 overflow-hidden" onClick={() => handleDayClick(date)}>
         <div className="text-right text-xs font-semibold">{dayNumber}</div>
         
         <div className="flex-grow min-h-0 pt-1">
@@ -159,10 +159,10 @@ export default function CalendarView({ transactions }: { transactions: Transacti
             components={{ Day: DayContent }}
             className="p-0"
             classNames={{
-              table: 'w-full border-collapse',
-              head_row: 'grid grid-cols-7 w-full border-b',
+              table: 'w-full border-collapse table-fixed',
+              head_row: 'border-b',
               head_cell: 'text-muted-foreground font-normal text-xs text-center p-2',
-              row: 'grid grid-cols-7 w-full',
+              row: '',
               cell: 'border-t border-l first:border-l-0 relative',
               day: 'h-24 md:h-28 w-full p-0',
               day_selected: '',
