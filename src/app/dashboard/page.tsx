@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState } from 'react';
@@ -16,6 +15,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,68 +91,112 @@ function UserMenu() {
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
 
-  const handleAddTransaction = (data: Omit<Transaction, 'id'>) => {
-    const newTransaction: Transaction = {
-      ...data,
-      id: (transactions.length + 1).toString(),
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
+  const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
+    if (id) {
+      setTransactions(prev => prev.map(t => t.id === id ? { ...data, id } : t));
+    } else {
+      const newTransaction: Transaction = {
+        ...data,
+        id: (transactions.length + 1).toString() + Math.random(), // Not robust, but ok for mock
+      };
+      setTransactions(prev => [newTransaction, ...prev]);
+    }
+  };
+  
+  const handleEdit = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setAddTransactionOpen(true);
+  };
+  
+  const handleConfirmDelete = () => {
+    if (!deletingTransactionId) return;
+    setTransactions(prev => prev.filter(t => t.id !== deletingTransactionId));
+    setDeletingTransactionId(null);
   };
 
+
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-        <h1 className="text-xl font-semibold">Overview</h1>
-        <div className="relative ml-auto flex-1 md:grow-0">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-          />
-        </div>
-        <Dialog open={isAddTransactionOpen} onOpenChange={setAddTransactionOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1">
-              <Plus className="h-4 w-4" />
-              Add Transaction
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add a new transaction</DialogTitle>
-              <DialogDescription>
-                Fill in the details below to log a new income or expense.
-              </DialogDescription>
-            </DialogHeader>
-            <AddTransactionForm 
-              onFormSubmit={handleAddTransaction}
-              setDialogOpen={setAddTransactionOpen}
+    <>
+      <div className="flex min-h-screen w-full flex-col">
+        <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+          <h1 className="text-xl font-semibold">Overview</h1>
+          <div className="relative ml-auto flex-1 md:grow-0">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
             />
-          </DialogContent>
-        </Dialog>
-        <Suspense fallback={<Skeleton className="h-10 w-24 rounded-full" />}>
-          <UserMenu />
-        </Suspense>
-      </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-        <Overview transactions={transactions} />
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <div className="xl:col-span-2">
-            <TransactionOverview />
           </div>
-          <div className="flex flex-col gap-4">
-            <RecentTransactions transactions={transactions.slice(0, 5)} />
+          <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
+            setAddTransactionOpen(isOpen);
+            if (!isOpen) {
+              setEditingTransaction(null);
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1">
+                <Plus className="h-4 w-4" />
+                Add Transaction
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingTransaction ? 'Edit transaction' : 'Add a new transaction'}</DialogTitle>
+                <DialogDescription>
+                  {editingTransaction ? 'Update the details below.' : 'Fill in the details below to log a new income or expense.'}
+                </DialogDescription>
+              </DialogHeader>
+              <AddTransactionForm 
+                onFormSubmit={handleSaveTransaction}
+                setDialogOpen={setAddTransactionOpen}
+                initialData={editingTransaction}
+              />
+            </DialogContent>
+          </Dialog>
+          <Suspense fallback={<Skeleton className="h-10 w-24 rounded-full" />}>
+            <UserMenu />
+          </Suspense>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+          <Overview transactions={transactions} />
+          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="xl:col-span-2">
+              <TransactionOverview />
+            </div>
+            <div className="flex flex-col gap-4">
+              <RecentTransactions 
+                transactions={transactions.slice(0, 5)} 
+                onEdit={handleEdit}
+                onDelete={setDeletingTransactionId}
+              />
+            </div>
+            <div className="xl:col-span-2">
+              <Budgets budgets={mockBudgets} />
+            </div>
+            <div className="flex flex-col gap-4">
+              <SpendingBreakdown transactions={transactions} />
+            </div>
           </div>
-          <div className="xl:col-span-2">
-            <Budgets budgets={mockBudgets} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <SpendingBreakdown transactions={transactions} />
-          </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+      <AlertDialog open={!!deletingTransactionId} onOpenChange={(isOpen) => !isOpen && setDeletingTransactionId(null)}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this transaction.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDeletingTransactionId(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

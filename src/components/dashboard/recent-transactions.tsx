@@ -3,33 +3,30 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { Transaction, TransactionCategory } from '@/types';
+import type { Transaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { MoreHorizontal, Utensils, Car, ShoppingBag, Wrench, Ticket, Landmark } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
-};
-
-const categoryIcons: { [key in TransactionCategory]: React.ReactNode } = {
-    Food: <Utensils className="h-4 w-4 text-muted-foreground" />,
-    Transport: <Car className="h-4 w-4 text-muted-foreground" />,
-    Shopping: <ShoppingBag className="h-4 w-4 text-muted-foreground" />,
-    Utilities: <Wrench className="h-4 w-4 text-muted-foreground" />,
-    Entertainment: <Ticket className="h-4 w-4 text-muted-foreground" />,
-    Salary: <Landmark className="h-4 w-4 text-muted-foreground" />,
-    Other: <MoreHorizontal className="h-4 w-4 text-muted-foreground" />,
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (id: string) => void;
 };
 
 
-export default function RecentTransactions({ transactions }: RecentTransactionsProps) {
+export default function RecentTransactions({ transactions, onEdit, onDelete }: RecentTransactionsProps) {
   return (
     <Card>
       <CardHeader>
@@ -47,14 +44,31 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
                     <AvatarImage data-ai-hint="person portrait" src={`https://placehold.co/100x100.png?text=${transaction.description.charAt(0)}`} alt="Avatar" />
                     <AvatarFallback>{transaction.description.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className="grid gap-1">
+                <div className="grid gap-1 flex-1">
                     <p className="text-sm font-medium leading-none">{transaction.description}</p>
                     <p className="text-sm text-muted-foreground">{transaction.category} · {format(transaction.date, "LLL dd")}</p>
                 </div>
-                <div className={`ml-auto font-medium ${transaction.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
+                <div className={`font-medium text-right ${transaction.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
                     {transaction.type === 'income' ? '+' : '-'}
                     {formatCurrency(transaction.amount)}
                 </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => onEdit(transaction)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => onDelete(transaction.id)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         ))}
       </CardContent>

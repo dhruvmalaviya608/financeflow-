@@ -26,6 +26,7 @@ import type { Transaction, TransactionCategory, Account } from '@/types';
 import { categories, accounts } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
 import { DatePicker } from '../ui/date-picker';
+import React from 'react';
 
 const FormSchema = z.object({
   description: z.string().min(2, {
@@ -41,16 +42,17 @@ const FormSchema = z.object({
 });
 
 type AddTransactionFormProps = {
-  onFormSubmit: (data: Omit<Transaction, 'id'>) => void;
+  onFormSubmit: (data: z.infer<typeof FormSchema>, id?: string) => void;
   setDialogOpen: (open: boolean) => void;
+  initialData?: Transaction | null;
 };
 
-export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransactionFormProps) {
+export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData }: AddTransactionFormProps) {
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       description: '',
       amount: 0,
       type: 'expense',
@@ -59,11 +61,26 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
       date: new Date(),
     },
   });
+  
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    } else {
+      form.reset({
+        description: '',
+        amount: 0,
+        type: 'expense',
+        category: 'Food',
+        account: 'Cash',
+        date: new Date(),
+      });
+    }
+  }, [initialData, form]);
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    onFormSubmit(data);
+    onFormSubmit(data, initialData?.id);
     toast({
-      title: "Transaction added!",
+      title: `Transaction ${initialData ? 'updated' : 'added'}!`,
       description: `${data.description} for ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(data.amount)} has been logged.`,
     })
     setDialogOpen(false);
@@ -196,7 +213,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen }: AddTransacti
           />
         </div>
 
-        <Button type="submit" className="w-full">Save Transaction</Button>
+        <Button type="submit" className="w-full">{initialData ? 'Update Transaction' : 'Save Transaction'}</Button>
       </form>
     </Form>
   );
