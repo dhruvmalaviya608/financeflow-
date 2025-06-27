@@ -8,7 +8,7 @@ export type Transaction = {
   date: Date;
   description: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   category: TransactionCategory;
   account: Account;
 };
