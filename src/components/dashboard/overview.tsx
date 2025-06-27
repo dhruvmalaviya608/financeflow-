@@ -1,11 +1,10 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Scale, HandCoins } from 'lucide-react';
+import { TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Transaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useMemo } from 'react';
-import { Badge } from '../ui/badge';
 
 type OverviewProps = {
   transactions: Transaction[];
@@ -30,8 +29,8 @@ export default function Overview({ transactions }: OverviewProps) {
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total fund</CardTitle>
-          <Badge variant="secondary" className="bg-primary/10 text-primary border-none">+22.8%</Badge>
+          <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+          <Scale className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatCurrency(balance)}</div>
@@ -39,18 +38,20 @@ export default function Overview({ transactions }: OverviewProps) {
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Work Space</CardTitle>
+          <CardTitle className="text-sm font-medium">Income</CardTitle>
+          <TrendingUp className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">16</div>
+          <div className="text-2xl font-bold text-primary">{formatCurrency(totalIncome)}</div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Products</CardTitle>
+          <CardTitle className="text-sm font-medium">Expenses</CardTitle>
+          <TrendingDown className="h-4 w-4 text-destructive" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(totalIncome)}</div>
+          <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>
         </CardContent>
       </Card>
     </div>
