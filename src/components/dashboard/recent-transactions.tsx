@@ -167,30 +167,31 @@ export default function RecentTransactions({
                 
                 return (
                   <AccordionItem value={key} key={key} className="border-b-0">
-                    <div className="flex items-center gap-3">
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex flex-1 items-center justify-between">
+                    <div className="flex items-center justify-between py-4">
+                      <div className="flex items-center gap-3">
+                        {enableBulkDelete && (
+                          <Checkbox
+                            checked={areAllInGroupSelected(groupTransactionIds)}
+                            onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
+                            aria-label="Select all transactions in this group"
+                            className="shrink-0"
+                          />
+                        )}
+                        <AccordionTrigger className="flex-initial justify-start p-0 hover:no-underline [&_svg]:ml-2">
                           <div className="flex items-baseline gap-3">
                               <span className="text-3xl font-bold">{titleMain}</span>
                               <span className="text-sm text-muted-foreground">{titleSub}</span>
                           </div>
-                          <div className="flex items-center gap-4 text-sm font-semibold">
-                              {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
-                              {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-                      {enableBulkDelete && (
-                        <Checkbox
-                          checked={areAllInGroupSelected(groupTransactionIds)}
-                          onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
-                          aria-label="Select all transactions in this group"
-                          className="shrink-0"
-                        />
-                      )}
+                        </AccordionTrigger>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm font-semibold">
+                          {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
+                          {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+                      </div>
                     </div>
-                    <AccordionContent className="pt-4">
-                      <div className="space-y-4">
+                    <AccordionContent className="pt-0">
+                      <div className="space-y-4 pl-10">
                         {dayTransactions.map(transaction => (
                           <div key={transaction.id} className="group flex items-start gap-4">
                               <div className="grid gap-0.5 flex-1">
