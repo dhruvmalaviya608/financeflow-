@@ -25,12 +25,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Bell, Search, UserCircle, Plus } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { TransactionOverview } from '@/components/dashboard/transaction-overview';
 import { Budgets } from '@/components/dashboard/budgets';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 function UserMenu() {
   const router = useRouter();
@@ -42,21 +43,33 @@ function UserMenu() {
   };
 
   const capitalize = (s: string | null): string => {
-    if (!s) return 'My Account';
+    if (!s) return 'User';
     const words = s.split(' ');
     return words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  }
+
+  const getInitials = (s: string | null): string => {
+    if (!s) return 'U';
+    const nameParts = s.split(' ');
+    if (nameParts.length > 1) {
+      return nameParts[0].charAt(0).toUpperCase() + nameParts[nameParts.length - 1].charAt(0).toUpperCase();
+    }
+    return s.charAt(0).toUpperCase();
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <UserCircle className="h-5 w-5" />
-          <span className="sr-only">Toggle user menu</span>
+        <Button variant="ghost" className="relative h-10 flex items-center gap-2 rounded-full p-1 pr-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage data-ai-hint="person" src={`https://placehold.co/100x100.png?text=${getInitials(name)}`} alt="User Avatar" />
+            <AvatarFallback>{getInitials(name)}</AvatarFallback>
+          </Avatar>
+          <span className="hidden sm:inline-block">{capitalize(name)}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{capitalize(name)}</DropdownMenuLabel>
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>Settings</DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -110,7 +123,7 @@ export default function DashboardPage() {
             />
           </DialogContent>
         </Dialog>
-        <Suspense fallback={<Skeleton className="h-8 w-8 rounded-full" />}>
+        <Suspense fallback={<Skeleton className="h-10 w-24 rounded-full" />}>
           <UserMenu />
         </Suspense>
       </header>
