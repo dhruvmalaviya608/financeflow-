@@ -19,7 +19,13 @@ type TransactionsByDay = {
   };
 };
 
-export default function CalendarView({ transactions }: { transactions: Transaction[] }) {
+type CalendarViewProps = {
+  transactions: Transaction[];
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (id: string) => void;
+};
+
+export default function CalendarView({ transactions, onEdit, onDelete }: CalendarViewProps) {
   const [month, setMonth] = useState<Date>(startOfMonth(new Date()));
   const [selectedTransactions, setSelectedTransactions] = useState<Transaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -178,6 +184,8 @@ export default function CalendarView({ transactions }: { transactions: Transacti
         onOpenChange={setDialogOpen}
         date={selectedDate}
         transactions={selectedTransactions}
+        onEdit={onEdit}
+        onDelete={onDelete}
       />
     </>
   );

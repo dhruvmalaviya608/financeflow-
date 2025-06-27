@@ -231,7 +231,11 @@ export default function DashboardPage() {
               </div>
             </TabsContent>
             <TabsContent value="calendar" className="mt-4">
-              <CalendarView transactions={transactions} />
+              <CalendarView 
+                transactions={transactions}
+                onEdit={handleEdit}
+                onDelete={setDeletingTransactionId}
+              />
             </TabsContent>
           </Tabs>
         </main>
