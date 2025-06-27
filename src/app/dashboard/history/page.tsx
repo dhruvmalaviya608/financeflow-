@@ -48,8 +48,6 @@ export default function HistoryPage() {
   const [newTransactionDate, setNewTransactionDate] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
-  const [selection, setSelection] = useState<string[]>([]);
-  const [isBulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -82,13 +80,6 @@ export default function HistoryPage() {
     setAddTransactionOpen(true);
   }
 
-  const handleConfirmBulkDelete = () => {
-    if (selection.length === 0) return;
-    deleteMultipleTransactions(selection);
-    setSelection([]);
-    setBulkDeleteConfirmOpen(false);
-  };
-
   const displayedTransactions = searchQuery
     ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
     : transactions;
@@ -109,12 +100,6 @@ export default function HistoryPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
-            {selection.length > 0 ? (
-              <Button variant="destructive" size="sm" className="gap-1" onClick={() => setBulkDeleteConfirmOpen(true)}>
-                <Trash2 className="h-4 w-4" />
-                Delete ({selection.length})
-              </Button>
-            ) : null}
             <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
               setAddTransactionOpen(isOpen);
               if (!isOpen) {
@@ -157,8 +142,6 @@ export default function HistoryPage() {
             onAdd={handleAddTransaction}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            selection={selection}
-            onSelectionChange={setSelection}
           />
         </main>
       </div>
@@ -174,21 +157,6 @@ export default function HistoryPage() {
               <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setDeletingTransactionId(null)}>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmDeleteTransaction}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={isBulkDeleteConfirmOpen} onOpenChange={setBulkDeleteConfirmOpen}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete {selection.length} selected transaction{selection.length > 1 ? 's' : ''}.
-              </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setBulkDeleteConfirmOpen(false)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmBulkDelete}>Delete</AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>

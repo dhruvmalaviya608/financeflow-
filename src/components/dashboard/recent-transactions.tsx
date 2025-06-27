@@ -25,7 +25,6 @@ import {
   AccordionContent,
   AccordionItem,
 } from '@/components/ui/accordion';
-import { Checkbox } from '@/components/ui/checkbox';
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -34,8 +33,6 @@ type RecentTransactionsProps = {
   onAdd: (date?: Date) => void;
   viewMode: 'daily' | 'monthly' | 'yearly';
   onViewModeChange: (mode: 'daily' | 'monthly' | 'yearly') => void;
-  selection?: string[];
-  onSelectionChange?: (ids: string[]) => void;
 };
 
 type TransactionsByGroup = {
@@ -46,7 +43,7 @@ type TransactionsByGroup = {
   expense: number;
 };
 
-export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd, viewMode, onViewModeChange, selection, onSelectionChange }: RecentTransactionsProps) {
+export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd, viewMode, onViewModeChange }: RecentTransactionsProps) {
   const groupedTransactions = useMemo(() => {
     let groupBy: (t: Transaction) => string;
     if (viewMode === 'daily') {
@@ -59,7 +56,6 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
       return [];
     }
     
-    // 1. Group transactions
     const groups = [...transactions].reduce((acc, transaction) => {
         const dateKey = groupBy(transaction);
         if (!acc[dateKey]) {
@@ -72,7 +68,6 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
             };
         }
         acc[dateKey].transactions.push(transaction);
-        // Only aggregate USD for totals
         if (transaction.currency === 'USD') {
             if (transaction.type === 'income') {
                 acc[dateKey].income += transaction.amount;
@@ -85,12 +80,10 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
 
     const groupsAsArray = Object.values(groups);
 
-    // 2. Sort transactions inside each group by date (descending)
     for (const group of groupsAsArray) {
       group.transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
 
-    // 3. Sort the groups themselves by date (descending)
     groupsAsArray.sort((a, b) => new Date(b.key).getTime() - new Date(a.key).getTime());
 
     return groupsAsArray;
@@ -118,15 +111,6 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
       return { main: '', sub: '' };
   };
 
-  const handleTransactionSelect = (transactionId: string, isSelected: boolean) => {
-    if (!selection || !onSelectionChange) return;
-    if (isSelected) {
-      onSelectionChange([...selection, transactionId]);
-    } else {
-      onSelectionChange(selection.filter(id => id !== transactionId));
-    }
-  };
-
   const defaultOpen = useMemo(() => groupedTransactions.map(g => g.key), [groupedTransactions]);
 
   return (
@@ -149,35 +133,24 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
               
               return (
                 <AccordionItem value={key} key={key} className="border-b-0">
-                  <div className={cn("flex items-center border-b pb-2 mb-4", selection && onSelectionChange && "gap-4")}>
-                    {selection && onSelectionChange && <div className="w-4 shrink-0" />}
-                    <AccordionPrimitive.Header className="flex flex-1 items-center">
-                        <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group">
-                          <div className="flex items-baseline gap-3">
-                              <span className="text-3xl font-bold">{titleMain}</span>
-                              <span className="text-sm text-muted-foreground">{titleSub}</span>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm font-semibold">
-                              {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
-                              {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
-                          </div>
-                          <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                        </AccordionPrimitive.Trigger>
-                    </AccordionPrimitive.Header>
-                  </div>
+                  <AccordionPrimitive.Header className="flex flex-1 items-center border-b pb-2 mb-4">
+                    <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group">
+                      <div className="flex items-baseline gap-3">
+                          <span className="text-3xl font-bold">{titleMain}</span>
+                          <span className="text-sm text-muted-foreground">{titleSub}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm font-semibold">
+                          {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
+                          {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+                      </div>
+                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    </AccordionPrimitive.Trigger>
+                  </AccordionPrimitive.Header>
                   <AccordionContent className="pt-4">
                     <div className="space-y-4">
                       {dayTransactions.map(transaction => (
                         <div key={transaction.id} className="group flex items-start gap-4">
-                           {selection && onSelectionChange && (
-                            <Checkbox
-                              checked={selection.includes(transaction.id)}
-                              onCheckedChange={(checked) => handleTransactionSelect(transaction.id, !!checked)}
-                              className="mt-1"
-                              aria-label={`Select transaction: ${transaction.description}`}
-                            />
-                          )}
-                            <div className={cn("grid gap-0.5 flex-1", !selection && "pl-1")}>
+                            <div className="grid gap-0.5 flex-1 pl-1">
                                 <div className="flex justify-between items-start">
                                     <p className="font-medium leading-none">{transaction.description}</p>
                                     <div className="flex items-center -mt-1 -mr-2">

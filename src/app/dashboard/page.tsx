@@ -129,8 +129,6 @@ export default function DashboardPage() {
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('daily');
-  const [selection, setSelection] = useState<string[]>([]);
-  const [isBulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
 
   const handleMonthChange = (monthValue: string) => {
       const monthIndex = parseInt(monthValue, 10);
@@ -167,13 +165,6 @@ export default function DashboardPage() {
     setDeletingCategory(null);
   };
 
-  const handleConfirmBulkDelete = () => {
-    if (selection.length === 0) return;
-    deleteMultipleTransactions(selection);
-    setSelection([]);
-    setBulkDeleteConfirmOpen(false);
-  };
-
   const handleAddTransaction = (date?: Date) => {
     setEditingTransaction(null);
     setNewTransactionDate(date || null);
@@ -203,7 +194,6 @@ export default function DashboardPage() {
     setSearchQuery('');
     setActiveTransaction(null);
     setIsSearchOpen(false);
-    setSelection([]);
   };
 
   const filteredTransactions = useMemo(() => {
@@ -348,12 +338,6 @@ export default function DashboardPage() {
                   </Button>
               )}
             </div>
-            {selection.length > 0 && (
-              <Button variant="destructive" size="sm" className="gap-1" onClick={() => setBulkDeleteConfirmOpen(true)}>
-                <Trash2 className="h-4 w-4" />
-                Delete ({selection.length})
-              </Button>
-            )}
             <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
               setAddTransactionOpen(isOpen);
               if (!isOpen) {
@@ -408,8 +392,6 @@ export default function DashboardPage() {
                     onAdd={handleAddTransaction}
                     viewMode={viewMode}
                     onViewModeChange={handleViewModeChange}
-                    selection={selection}
-                    onSelectionChange={setSelection}
                   />
                 </div>
                 <div className="lg:col-span-1 flex flex-col gap-4">
@@ -456,20 +438,6 @@ export default function DashboardPage() {
               <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setDeletingCategory(null)}>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmDeleteCategory}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={isBulkDeleteConfirmOpen} onOpenChange={setBulkDeleteConfirmOpen}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete {selection.length} selected transaction{selection.length > 1 ? 's' : ''}.
-              </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setBulkDeleteConfirmOpen(false)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmBulkDelete}>Delete</AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
