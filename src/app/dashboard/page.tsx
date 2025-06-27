@@ -2,8 +2,8 @@
 
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { Transaction } from '@/types';
-import { mockTransactions, mockBudgets } from '@/data/mock-data';
+import type { Transaction, TransactionCategory } from '@/types';
+import { mockTransactions, mockBudgets, categories as mockCategories } from '@/data/mock-data';
 import Overview from '@/components/dashboard/overview';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import { Button } from '@/components/ui/button';
@@ -90,6 +90,7 @@ function UserMenu() {
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [categories, setCategories] = useState<TransactionCategory[]>(mockCategories);
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
@@ -115,6 +116,12 @@ export default function DashboardPage() {
     if (!deletingTransactionId) return;
     setTransactions(prev => prev.filter(t => t.id !== deletingTransactionId));
     setDeletingTransactionId(null);
+  };
+
+  const handleAddCategory = (category: TransactionCategory) => {
+    if (category.trim() && !categories.includes(category.trim())) {
+      setCategories(prev => [...prev, category.trim()].sort());
+    }
   };
 
 
@@ -154,6 +161,8 @@ export default function DashboardPage() {
                 onFormSubmit={handleSaveTransaction}
                 setDialogOpen={setAddTransactionOpen}
                 initialData={editingTransaction}
+                categories={categories}
+                onAddCategory={handleAddCategory}
               />
             </DialogContent>
           </Dialog>

@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Transaction, TransactionCategory, Account } from '@/types';
-import { categories, accounts } from '@/data/mock-data';
+import { accounts } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar as CalendarIcon, CreditCard, Folder, DollarSign, Pen, Plus } from 'lucide-react';
 import React from 'react';
@@ -32,12 +32,23 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const FormSchema = z.object({
   description: z.string().optional(),
   amount: z.coerce.number().positive({ message: 'Amount must be positive.' }),
   type: z.enum(['income', 'expense', 'transfer']),
-  category: z.custom<TransactionCategory>(),
+  category: z.string().min(1, { message: 'Category is required.' }),
   account: z.custom<Account>(),
   date: z.date({
     required_error: "A date is required.",
@@ -48,6 +59,8 @@ type AddTransactionFormProps = {
   onFormSubmit: (data: Omit<Transaction, 'id' | 'description'> & { description: string }, id?: string) => void;
   setDialogOpen: (open: boolean) => void;
   initialData?: Transaction | null;
+  categories: TransactionCategory[];
+  onAddCategory: (category: TransactionCategory) => void;
 };
 
 const InlineDatePicker = ({ date, setDate }: { date: Date, setDate: (date: Date | undefined) => void }) => {
@@ -91,8 +104,10 @@ const InlineSelect = ({ value, onValueChange, placeholder, items }: { value: str
   );
 }
 
-export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData }: AddTransactionFormProps) {
+export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, categories, onAddCategory }: AddTransactionFormProps) {
   const { toast } = useToast();
+  const [isAddCategoryOpen, setAddCategoryOpen] = React.useState(false);
+  const [newCategoryName, setNewCategoryName] = React.useState("");
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -122,6 +137,26 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData }:
       });
     }
   }, [initialData, form]);
+
+  const handleSaveNewCategory = () => {
+    const newCat = newCategoryName.trim();
+    if (newCat && !categories.includes(newCat)) {
+      onAddCategory(newCat);
+      form.setValue('category', newCat, { shouldValidate: true });
+      toast({
+          title: 'Category Added',
+          description: `"${newCat}" has been added to your categories.`,
+      });
+      setNewCategoryName("");
+      setAddCategoryOpen(false);
+    } else if (categories.includes(newCat)) {
+      toast({
+          title: 'Category Exists',
+          description: `Category "${newCat}" already exists.`,
+          variant: 'destructive',
+      });
+    }
+  };
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     onFormSubmit({
@@ -209,9 +244,31 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData }:
                       <FormControl>
                         <InlineSelect value={field.value} onValueChange={field.onChange} placeholder="Select category" items={categories} />
                       </FormControl>
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6">
-                          <Plus className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog open={isAddCategoryOpen} onOpenChange={setAddCategoryOpen}>
+                        <AlertDialogTrigger asChild>
+                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6">
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Add New Category</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Enter the name for the new category. This will be saved for future use.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <Input 
+                                placeholder="e.g., Health"
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                            />
+                            <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setNewCategoryName("")}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSaveNewCategory}>Save</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                 </FormItem>
                 )}
@@ -239,6 +296,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData }:
         </div>
          <div className="text-destructive text-sm min-h-[1.25rem]">
             {form.formState.errors.amount?.message ? <p>{form.formState.errors.amount?.message}</p> : null}
+            {form.formState.errors.category?.message ? <p>{form.formState.errors.category?.message}</p> : null}
          </div>
 
         <FormField

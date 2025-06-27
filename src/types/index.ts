@@ -1,6 +1,6 @@
 import type { ElementType } from 'react';
 
-export type TransactionCategory = 'Food' | 'Transport' | 'Shopping' | 'Utilities' | 'Entertainment' | 'Salary' | 'Other';
+export type TransactionCategory = string;
 export type Account = 'Cash' | 'Bank' | 'Card';
 
 export type Transaction = {
