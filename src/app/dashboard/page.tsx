@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Transaction, TransactionCategory } from '@/types';
 import { mockTransactions, mockBudgets, categories as mockCategories } from '@/data/mock-data';
@@ -170,8 +170,14 @@ export default function DashboardPage() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    setActiveTransaction(null);
-    setIsSearchOpen(query.length > 0);
+    if (activeTransaction) {
+      setActiveTransaction(null);
+    }
+    if (query.length > 0) {
+      if (!isSearchOpen) setIsSearchOpen(true);
+    } else {
+      if (isSearchOpen) setIsSearchOpen(false);
+    }
   };
 
   const handleSuggestionClick = (transaction: Transaction) => {
@@ -188,9 +194,13 @@ export default function DashboardPage() {
 
   const displayedTransactions = activeTransaction ? [activeTransaction] : transactions;
 
-  const searchSuggestions = searchQuery.length > 0 && !activeTransaction
-    ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    : [];
+  const searchSuggestions = useMemo(() => {
+    if (searchQuery.length === 0 || activeTransaction) return [];
+    return transactions.filter(t => 
+      t.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, transactions, activeTransaction]);
+
 
   return (
     <>
@@ -207,7 +217,7 @@ export default function DashboardPage() {
                       className="w-full rounded-lg bg-background pl-8 pr-8 md:w-[200px] lg:w-[320px]"
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      onFocus={() => { if (searchQuery.length > 0 && !activeTransaction) setIsSearchOpen(true); }}
+                      onFocus={() => { if (searchQuery.length > 0 && searchSuggestions.length > 0) setIsSearchOpen(true); }}
                     />
                 </PopoverTrigger>
                 <PopoverContent className="w-[200px] lg:w-[320px] p-0" align="start">
