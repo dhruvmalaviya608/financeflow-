@@ -1,10 +1,12 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis,
-  RadarChart, PolarGrid, PolarAngleAxis, Radar
+  RadarChart, PolarGrid, PolarAngleAxis, Radar,
+  LineChart, Line, AreaChart, Area
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Transaction } from '@/types';
@@ -53,7 +55,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export default function SpendingBreakdown({ transactions }: SpendingBreakdownProps) {
-  const [chartType, setChartType] = useState<'pie' | 'bar' | 'radar'>('pie');
+  const [chartType, setChartType] = useState<'pie' | 'bar' | 'radar' | 'line' | 'area'>('pie');
 
   const { data, totalExpenses } = useMemo(() => {
     const expenseData = transactions
@@ -122,6 +124,34 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
             </RadarChart>
           </ResponsiveContainer>
         );
+      case 'line':
+        return (
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 25 }}>
+              <XAxis dataKey="name" tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }} stroke="hsl(var(--muted-foreground))" interval={0} height={40} />
+              <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--chart-1))" }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+      case 'area':
+        return (
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 25 }}>
+              <defs>
+                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="name" tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }} stroke="hsl(var(--muted-foreground))" interval={0} height={40} />
+              <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" fill="url(#colorValue)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        );
       case 'pie':
       default:
         return (
@@ -174,6 +204,8 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
                 <SelectItem value="pie">Pie Chart</SelectItem>
                 <SelectItem value="bar">Bar Chart</SelectItem>
                 <SelectItem value="radar">Radar Chart</SelectItem>
+                <SelectItem value="line">Line Chart</SelectItem>
+                <SelectItem value="area">Area Chart</SelectItem>
               </SelectContent>
             </Select>
         </div>
