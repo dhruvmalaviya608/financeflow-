@@ -1,10 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { useMemo, useState } from 'react';
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis,
+  RadarChart, PolarGrid, PolarAngleAxis, Radar
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Transaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 type SpendingBreakdownProps = {
   transactions: Transaction[];
@@ -47,6 +53,8 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export default function SpendingBreakdown({ transactions }: SpendingBreakdownProps) {
+  const [chartType, setChartType] = useState<'pie' | 'bar' | 'radar'>('pie');
+
   const { data, totalExpenses } = useMemo(() => {
     const expenseData = transactions
       .filter(t => t.type === 'expense' && t.currency === 'USD')
@@ -78,13 +86,46 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
     )
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Spending Breakdown</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={200}>
+  const renderChart = () => {
+    switch (chartType) {
+      case 'bar':
+        return (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
+              <XAxis type="number" hide />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={100} 
+                tick={{ fontSize: 12 }} 
+                tickLine={false} 
+                axisLine={false} 
+                stroke="hsl(var(--muted-foreground))"
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--secondary))' }} />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'radar':
+        return (
+          <ResponsiveContainer width="100%" height={200}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+              <PolarGrid stroke="hsl(var(--border))" />
+              <PolarAngleAxis dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+              <Radar name="Spending" dataKey="value" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.6} />
+              <Tooltip content={<CustomTooltip />} />
+            </RadarChart>
+          </ResponsiveContainer>
+        );
+      case 'pie':
+      default:
+        return (
+          <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Tooltip content={<CustomTooltip />} />
             <Pie
@@ -116,6 +157,29 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
             </Pie>
           </PieChart>
         </ResponsiveContainer>
+        );
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+            <CardTitle>Spending Breakdown</CardTitle>
+            <Select value={chartType} onValueChange={(value) => setChartType(value as any)}>
+              <SelectTrigger className="w-[130px] h-9">
+                <SelectValue placeholder="Chart Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pie">Pie Chart</SelectItem>
+                <SelectItem value="bar">Bar Chart</SelectItem>
+                <SelectItem value="radar">Radar Chart</SelectItem>
+              </SelectContent>
+            </Select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {renderChart()}
         <div className="mt-4 space-y-3">
             {data.map((entry, index) => (
                 <div key={entry.name} className="flex items-center justify-between text-sm">
