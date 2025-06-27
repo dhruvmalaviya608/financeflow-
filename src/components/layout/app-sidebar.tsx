@@ -2,6 +2,7 @@
 
 import {
   ChevronDown,
+  History,
   LayoutGrid,
   Package,
   Settings,
@@ -98,6 +99,13 @@ export default function AppSidebar() {
               icon={<LayoutGrid className="h-4 w-4" />}
             >
               Overview
+            </NavLink>
+            <NavLink
+              href="/dashboard/history"
+              isActive={pathname.startsWith('/dashboard/history')}
+              icon={<History className="h-4 w-4" />}
+            >
+              History
             </NavLink>
 
             <p className="px-3 mt-4 py-2 text-xs font-semibold text-muted-foreground/80">
