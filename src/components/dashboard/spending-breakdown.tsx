@@ -54,8 +54,41 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+// For Labeled Pie chart
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent, name }: any) => {
+  const radius = outerRadius + 25;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const sin = Math.sin(-midAngle * RADIAN);
+  const cos = Math.cos(-midAngle * RADIAN);
+  const sx = cx + (outerRadius + 5) * cos;
+  const sy = cy + (outerRadius + 5) * sin;
+  const mx = cx + (outerRadius + 15) * cos;
+  const my = cy + (outerRadius + 15) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 12;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
+
+  if (percent < 0.025) return null;
+
+  return (
+    <g>
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke="hsl(var(--muted-foreground))" fill="none" />
+      <circle cx={sx} cy={sy} r={2} fill="hsl(var(--muted-foreground))" stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 6} y={ey} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))" fontSize={10}>
+        {name}
+      </text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 6} y={ey} dy={12} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))" fontSize={10}>
+        {`${(percent * 100).toFixed(1)}%`}
+      </text>
+    </g>
+  );
+};
+
+
 export default function SpendingBreakdown({ transactions }: SpendingBreakdownProps) {
-  const [chartType, setChartType] = useState<'pie' | 'bar' | 'radar' | 'line' | 'area'>('pie');
+  const [chartType, setChartType] = useState<'pie' | 'bar' | 'radar' | 'line' | 'area' | 'detailed-pie'>('pie');
 
   const { data, totalExpenses } = useMemo(() => {
     const expenseData = transactions
@@ -90,6 +123,29 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
 
   const renderChart = () => {
     switch (chartType) {
+      case 'detailed-pie':
+        return (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart margin={{ top: 20, right: 40, bottom: 20, left: 40 }}>
+                <Tooltip content={<CustomTooltip />} />
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={60}
+                  fill="#8884d8"
+                  dataKey="value"
+                  nameKey="name"
+                >
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+        );
       case 'bar':
         return (
           <ResponsiveContainer width="100%" height={200}>
@@ -197,11 +253,12 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
         <div className="flex items-center justify-between">
             <CardTitle>Spending Breakdown</CardTitle>
             <Select value={chartType} onValueChange={(value) => setChartType(value as any)}>
-              <SelectTrigger className="w-[130px] h-9">
+              <SelectTrigger className="w-[140px] h-9">
                 <SelectValue placeholder="Chart Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pie">Pie Chart</SelectItem>
+                <SelectItem value="pie">Donut Chart</SelectItem>
+                <SelectItem value="detailed-pie">Detailed Pie</SelectItem>
                 <SelectItem value="bar">Bar Chart</SelectItem>
                 <SelectItem value="radar">Radar Chart</SelectItem>
                 <SelectItem value="line">Line Chart</SelectItem>
