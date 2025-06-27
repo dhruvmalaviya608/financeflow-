@@ -98,6 +98,7 @@ export default function DashboardPage() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
+  const [newTransactionDate, setNewTransactionDate] = useState<Date | null>(null);
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -154,8 +155,9 @@ export default function DashboardPage() {
     });
   };
 
-  const handleAddTransaction = () => {
+  const handleAddTransaction = (date?: Date) => {
     setEditingTransaction(null);
+    setNewTransactionDate(date || null);
     setAddTransactionOpen(true);
   }
 
@@ -176,10 +178,11 @@ export default function DashboardPage() {
             setAddTransactionOpen(isOpen);
             if (!isOpen) {
               setEditingTransaction(null);
+              setNewTransactionDate(null);
             }
           }}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1">
+              <Button size="sm" className="gap-1" onClick={() => handleAddTransaction()}>
                 <Plus className="h-4 w-4" />
                 Add Transaction
               </Button>
@@ -195,6 +198,7 @@ export default function DashboardPage() {
                 onFormSubmit={handleSaveTransaction}
                 setDialogOpen={setAddTransactionOpen}
                 initialData={editingTransaction}
+                transactionDate={newTransactionDate}
                 categories={categories}
                 onAddCategory={handleAddCategory}
                 onEditCategory={handleEditCategory}

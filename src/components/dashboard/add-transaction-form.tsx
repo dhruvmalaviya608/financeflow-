@@ -65,6 +65,7 @@ type AddTransactionFormProps = {
   onFormSubmit: (data: Omit<Transaction, 'id' | 'description'> & { description: string }, id?: string) => void;
   setDialogOpen: (open: boolean) => void;
   initialData?: Transaction | null;
+  transactionDate?: Date | null;
   categories: TransactionCategory[];
   onAddCategory: (category: TransactionCategory) => void;
   onEditCategory: (oldName: string, newName: string) => void;
@@ -216,7 +217,7 @@ const ManageCategoriesDialog = ({ categories, onAddCategory, onEditCategory, onD
 };
 
 
-export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, categories, onAddCategory, onEditCategory, onDeleteCategory }: AddTransactionFormProps) {
+export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, transactionDate, categories, onAddCategory, onEditCategory, onDeleteCategory }: AddTransactionFormProps) {
   const { toast } = useToast();
   const [isManageCategoryOpen, setManageCategoryOpen] = React.useState(false);
 
@@ -230,7 +231,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
       type: 'expense',
       category: 'Food',
       account: 'Cash',
-      date: new Date(),
+      date: transactionDate || new Date(),
       currency: 'USD',
     },
   });
@@ -245,11 +246,11 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
         type: 'expense',
         category: 'Food',
         account: 'Cash',
-        date: new Date(),
+        date: transactionDate || new Date(),
         currency: 'USD',
       });
     }
-  }, [initialData, form]);
+  }, [initialData, transactionDate, form]);
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     onFormSubmit({

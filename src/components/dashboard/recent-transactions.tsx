@@ -24,7 +24,7 @@ type RecentTransactionsProps = {
   transactions: Transaction[];
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
-  onAdd: () => void;
+  onAdd: (date?: Date) => void;
 };
 
 type TransactionsByDay = {
@@ -102,7 +102,7 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onSelect={onAdd}>
+                                        <DropdownMenuItem onSelect={() => onAdd(date)}>
                                             <Plus className="mr-2 h-4 w-4" />
                                             <span>Add New</span>
                                         </DropdownMenuItem>
