@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useState, useMemo, useRef } from 'react';
@@ -118,6 +119,7 @@ export default function DashboardPage() {
   const suggestionRefs = useRef<(HTMLButtonElement | null)[]>([]);
   
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('daily');
 
   const handleMonthChange = (monthValue: string) => {
       const monthIndex = parseInt(monthValue, 10);
@@ -217,14 +219,27 @@ export default function DashboardPage() {
 
   const filteredTransactions = useMemo(() => {
     if (activeTransaction) {
-      return [activeTransaction];
+        return [activeTransaction];
     }
+    
+    if (viewMode === 'yearly') {
+        return transactions;
+    }
+
+    if (viewMode === 'monthly') {
+        return transactions.filter(transaction => {
+            const transactionDate = new Date(transaction.date);
+            return transactionDate.getFullYear() === selectedDate.getFullYear();
+        });
+    }
+    
+    // daily
     return transactions.filter(transaction => {
         const transactionDate = new Date(transaction.date);
         return transactionDate.getFullYear() === selectedDate.getFullYear() &&
-               transactionDate.getMonth() === selectedDate.getMonth();
+                transactionDate.getMonth() === selectedDate.getMonth();
     });
-  }, [transactions, selectedDate, activeTransaction]);
+  }, [transactions, selectedDate, activeTransaction, viewMode]);
 
   const displayedTransactions = filteredTransactions;
 
@@ -265,6 +280,12 @@ export default function DashboardPage() {
     }
   };
 
+  const handleViewModeChange = (mode: 'daily' | 'monthly' | 'yearly') => {
+      if (activeTransaction) {
+          handleClearSearch();
+      }
+      setViewMode(mode);
+  }
 
   return (
     <>
@@ -272,22 +293,26 @@ export default function DashboardPage() {
         <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <h1 className="text-xl font-semibold">Dashboard</h1>
           <div className="flex items-center gap-2 ml-4">
-              <Select value={selectedDate.getMonth().toString()} onValueChange={handleMonthChange}>
-                  <SelectTrigger className="w-[120px] h-9">
-                      <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>)}
-                  </SelectContent>
-              </Select>
-              <Select value={selectedDate.getFullYear().toString()} onValueChange={handleYearChange}>
-                  <SelectTrigger className="w-[90px] h-9">
-                      <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                  </SelectContent>
-              </Select>
+              {viewMode === 'daily' && (
+                <Select value={selectedDate.getMonth().toString()} onValueChange={handleMonthChange}>
+                    <SelectTrigger className="w-[120px] h-9">
+                        <SelectValue placeholder="Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+              )}
+              {viewMode !== 'yearly' && (
+                <Select value={selectedDate.getFullYear().toString()} onValueChange={handleYearChange}>
+                    <SelectTrigger className="w-[90px] h-9">
+                        <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+              )}
           </div>
           <div className="relative ml-auto flex-1 md:grow-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -383,6 +408,8 @@ export default function DashboardPage() {
                     onEdit={handleEdit}
                     onDelete={setDeletingTransactionId}
                     onAdd={handleAddTransaction}
+                    viewMode={viewMode}
+                    onViewModeChange={handleViewModeChange}
                   />
                 </div>
                 <div className="lg:col-span-1 flex flex-col gap-4">
@@ -434,3 +461,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    

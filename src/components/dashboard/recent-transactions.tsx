@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -25,24 +26,39 @@ type RecentTransactionsProps = {
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
   onAdd: (date?: Date) => void;
+  viewMode: 'daily' | 'monthly' | 'yearly';
+  onViewModeChange: (mode: 'daily' | 'monthly' | 'yearly') => void;
 };
 
-type TransactionsByDay = {
+type TransactionsByGroup = {
+  key: string;
   date: Date;
   transactions: Transaction[];
   income: number;
   expense: number;
 };
 
-export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd }: RecentTransactionsProps) {
+export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd, viewMode, onViewModeChange }: RecentTransactionsProps) {
 
   const groupedTransactions = useMemo(() => {
     const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
+    let groupBy: (t: Transaction) => string;
+    if (viewMode === 'daily') {
+      groupBy = (t: Transaction) => format(t.date, 'yyyy-MM-dd');
+    } else if (viewMode === 'monthly') {
+      groupBy = (t: Transaction) => format(t.date, 'yyyy-MM');
+    } else if (viewMode === 'yearly') {
+      groupBy = (t: Transaction) => format(t.date, 'yyyy');
+    } else {
+      return [];
+    }
+    
     const groups = sortedTransactions.reduce((acc, transaction) => {
-        const dateKey = format(transaction.date, 'yyyy-MM-dd');
+        const dateKey = groupBy(transaction);
         if (!acc[dateKey]) {
             acc[dateKey] = {
+                key: dateKey,
                 date: transaction.date,
                 transactions: [],
                 income: 0,
@@ -59,73 +75,103 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
             }
         }
         return acc;
-    }, {} as Record<string, TransactionsByDay>);
+    }, {} as Record<string, TransactionsByGroup>);
 
     return Object.values(groups);
-  }, [transactions]);
+  }, [transactions, viewMode]);
+
+  const getGroupTitle = (date: Date) => {
+      if (viewMode === 'daily') {
+          return {
+              main: format(date, 'dd'),
+              sub: format(date, 'EEE'),
+          };
+      }
+      if (viewMode === 'monthly') {
+          return {
+              main: format(date, 'MMMM'),
+              sub: format(date, 'yyyy'),
+          };
+      }
+      if (viewMode === 'yearly') {
+          return {
+              main: format(date, 'yyyy'),
+              sub: '',
+          };
+      }
+      return { main: '', sub: '' };
+  };
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
             <CardTitle>Transactions</CardTitle>
+            <div className="flex items-center gap-1">
+                <Button variant={viewMode === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('daily')}>Daily</Button>
+                <Button variant={viewMode === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('monthly')}>Monthly</Button>
+                <Button variant={viewMode === 'yearly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('yearly')}>Yearly</Button>
+            </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {groupedTransactions.map(({ date, transactions: dayTransactions, income, expense }) => (
-          <div key={format(date, 'yyyy-MM-dd')}>
-            <div className="flex items-baseline justify-between border-b pb-2 mb-4">
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl font-bold">{format(date, 'dd')}</span>
-                <span className="text-sm text-muted-foreground">{format(date, 'EEE')}</span>
+        {groupedTransactions.map(({ key, date, transactions: dayTransactions, income, expense }) => {
+          const { main: titleMain, sub: titleSub } = getGroupTitle(date);
+          return (
+            <div key={key}>
+              <div className="flex items-baseline justify-between border-b pb-2 mb-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl font-bold">{titleMain}</span>
+                  <span className="text-sm text-muted-foreground">{titleSub}</span>
+                </div>
+                <div className="flex items-center gap-4 text-sm font-semibold">
+                  {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
+                  {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+                </div>
               </div>
-              <div className="flex items-center gap-4 text-sm font-semibold">
-                {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
-                {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+              <div className="space-y-4">
+                {dayTransactions.map(transaction => (
+                  <div key={transaction.id} className="group flex items-start gap-4">
+                      <div className="grid gap-0.5 flex-1">
+                          <div className="flex justify-between items-start">
+                              <p className="font-medium leading-none">{transaction.description}</p>
+                              <div className="flex items-center -mt-1 -mr-2">
+                                  <p className={`font-semibold text-right ${transaction.type === 'income' ? 'text-primary' : transaction.type === 'expense' ? 'text-destructive' : ''}`}>
+                                      {transaction.type !== 'transfer' && (transaction.type === 'income' ? '+' : '-')}
+                                      {formatCurrency(transaction.amount, transaction.currency)}
+                                  </p>
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                              <MoreHorizontal className="h-4 w-4" />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onSelect={() => onAdd(date)}>
+                                              <Plus className="mr-2 h-4 w-4" />
+                                              <span>Add New</span>
+                                          </DropdownMenuItem>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem onSelect={() => onEdit(transaction)}>
+                                              <Pencil className="mr-2 h-4 w-4" />
+                                              <span>Edit</span>
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onSelect={() => onDelete(transaction.id)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                              <Trash2 className="mr-2 h-4 w-4" />
+                                              <span>Delete</span>
+                                          </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                              </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{transaction.category} · {transaction.account}</p>
+                      </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="space-y-4">
-              {dayTransactions.map(transaction => (
-                 <div key={transaction.id} className="group flex items-start gap-4">
-                    <div className="grid gap-0.5 flex-1">
-                        <div className="flex justify-between items-start">
-                            <p className="font-medium leading-none">{transaction.description}</p>
-                            <div className="flex items-center -mt-1 -mr-2">
-                                <p className={`font-semibold text-right ${transaction.type === 'income' ? 'text-primary' : transaction.type === 'expense' ? 'text-destructive' : ''}`}>
-                                    {transaction.type !== 'transfer' && (transaction.type === 'income' ? '+' : '-')}
-                                    {formatCurrency(transaction.amount, transaction.currency)}
-                                </p>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onSelect={() => onAdd(date)}>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            <span>Add New</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem onSelect={() => onEdit(transaction)}>
-                                            <Pencil className="mr-2 h-4 w-4" />
-                                            <span>Edit</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => onDelete(transaction.id)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>Delete</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{transaction.category} · {transaction.account}</p>
-                    </div>
-                 </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          )
+        })}
         {groupedTransactions.length === 0 && (
             <div className="text-center text-muted-foreground py-10">
                 <p>No transactions to display.</p>
@@ -135,3 +181,5 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
     </Card>
   );
 }
+
+    
