@@ -5,7 +5,6 @@ import { Suspense, useState, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Transaction } from '@/types';
 import { useTransactions } from '@/context/transactions-context';
-import { mockBudgets } from '@/data/mock-data';
 import Overview from '@/components/dashboard/overview';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, X, Trash2 } from 'lucide-react';
-import { Budgets } from '@/components/dashboard/budgets';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -397,7 +395,6 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="lg:col-span-1 flex flex-col gap-4">
-                  <Budgets budgets={mockBudgets} />
                   <SpendingBreakdown transactions={displayedTransactions} />
                 </div>
               </div>
