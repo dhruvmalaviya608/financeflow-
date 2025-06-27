@@ -154,6 +154,11 @@ export default function DashboardPage() {
     });
   };
 
+  const handleAddTransaction = () => {
+    setEditingTransaction(null);
+    setAddTransactionOpen(true);
+  }
+
   return (
     <>
       <div className="flex min-h-screen w-full flex-col">
@@ -215,6 +220,7 @@ export default function DashboardPage() {
                     transactions={transactions} 
                     onEdit={handleEdit}
                     onDelete={setDeletingTransactionId}
+                    onAdd={handleAddTransaction}
                   />
                 </div>
                 <div className="lg:col-span-1 flex flex-col gap-4">

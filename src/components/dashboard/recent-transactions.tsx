@@ -11,11 +11,12 @@ import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -23,6 +24,7 @@ type RecentTransactionsProps = {
   transactions: Transaction[];
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
+  onAdd: () => void;
 };
 
 type TransactionsByDay = {
@@ -32,7 +34,7 @@ type TransactionsByDay = {
   expense: number;
 };
 
-export default function RecentTransactions({ transactions, onEdit, onDelete }: RecentTransactionsProps) {
+export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd }: RecentTransactionsProps) {
 
   const groupedTransactions = useMemo(() => {
     const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -100,6 +102,11 @@ export default function RecentTransactions({ transactions, onEdit, onDelete }: R
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={onAdd}>
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            <span>Add New</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem onSelect={() => onEdit(transaction)}>
                                             <Pencil className="mr-2 h-4 w-4" />
                                             <span>Edit</span>
