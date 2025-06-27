@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useMemo } from 'react';
+import { Suspense, useState, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Transaction, TransactionCategory } from '@/types';
 import { mockTransactions, mockBudgets, categories as mockCategories } from '@/data/mock-data';
@@ -105,6 +105,8 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTransaction, setActiveTransaction] = useState<Transaction | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -200,6 +202,36 @@ export default function DashboardPage() {
       t.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery, transactions, activeTransaction]);
+  
+  suggestionRefs.current = [];
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' && isSearchOpen && searchSuggestions.length > 0) {
+      e.preventDefault();
+      suggestionRefs.current[0]?.focus();
+    }
+  };
+  
+  const handleSuggestionKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const suggestionsCount = searchSuggestions.slice(0, 7).length;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = (index + 1) % suggestionsCount;
+      suggestionRefs.current[nextIndex]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (index === 0) {
+        searchInputRef.current?.focus();
+      } else {
+        const prevIndex = (index - 1 + suggestionsCount) % suggestionsCount;
+        suggestionRefs.current[prevIndex]?.focus();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsSearchOpen(false);
+      searchInputRef.current?.focus();
+    }
+  };
 
 
   return (
@@ -212,12 +244,14 @@ export default function DashboardPage() {
             <Popover open={isSearchOpen && searchSuggestions.length > 0} onOpenChange={setIsSearchOpen}>
                 <PopoverTrigger asChild>
                     <Input
+                      ref={searchInputRef}
                       type="search"
                       placeholder="Search transactions..."
                       className="w-full rounded-lg bg-background pl-8 pr-8 md:w-[200px] lg:w-[320px]"
                       value={searchQuery}
                       onChange={handleSearchChange}
                       onFocus={() => { if (searchQuery.length > 0 && searchSuggestions.length > 0) setIsSearchOpen(true); }}
+                      onKeyDown={handleSearchKeyDown}
                     />
                 </PopoverTrigger>
                 <PopoverContent 
@@ -226,12 +260,14 @@ export default function DashboardPage() {
                   onOpenAutoFocus={(e) => e.preventDefault()}
                 >
                     <div className="flex flex-col">
-                        {searchSuggestions.slice(0, 7).map(t => (
+                        {searchSuggestions.slice(0, 7).map((t, index) => (
                             <Button
                                 key={t.id}
+                                ref={el => suggestionRefs.current[index] = el}
                                 variant="ghost"
                                 className="justify-between font-normal p-2 h-auto"
                                 onClick={() => handleSuggestionClick(t)}
+                                onKeyDown={(e) => handleSuggestionKeyDown(e, index)}
                             >
                                 <span>{t.description}</span>
                                 <span className="text-sm text-muted-foreground">{formatCurrency(t.amount, t.currency)}</span>
