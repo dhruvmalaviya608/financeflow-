@@ -45,6 +45,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CalendarView from '@/components/dashboard/calendar-view';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { formatCurrency } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format, setMonth as setMonthInDate, setYear as setYearInDate } from 'date-fns';
 
 function UserMenu() {
   const router = useRouter();
@@ -92,6 +94,13 @@ function UserMenu() {
   );
 }
 
+const months = Array.from({ length: 12 }, (_, i) => ({
+  value: i,
+  label: format(new Date(0, i), 'MMMM')
+}));
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 10 }, (_, i) => (currentYear - i).toString());
+
 export default function DashboardPage() {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
@@ -107,6 +116,18 @@ export default function DashboardPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const handleMonthChange = (monthValue: string) => {
+      const monthIndex = parseInt(monthValue, 10);
+      setSelectedDate(current => setMonthInDate(current, monthIndex));
+  };
+
+  const handleYearChange = (yearValue: string) => {
+      const year = parseInt(yearValue, 10);
+      setSelectedDate(current => setYearInDate(current, year));
+  };
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -194,7 +215,18 @@ export default function DashboardPage() {
     setIsSearchOpen(false);
   };
 
-  const displayedTransactions = activeTransaction ? [activeTransaction] : transactions;
+  const filteredTransactions = useMemo(() => {
+    if (activeTransaction) {
+      return [activeTransaction];
+    }
+    return transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return transactionDate.getFullYear() === selectedDate.getFullYear() &&
+               transactionDate.getMonth() === selectedDate.getMonth();
+    });
+  }, [transactions, selectedDate, activeTransaction]);
+
+  const displayedTransactions = filteredTransactions;
 
   const searchSuggestions = useMemo(() => {
     if (searchQuery.length === 0 || activeTransaction) return [];
@@ -239,6 +271,24 @@ export default function DashboardPage() {
       <div className="flex min-h-screen w-full flex-col">
         <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <h1 className="text-xl font-semibold">Dashboard</h1>
+          <div className="flex items-center gap-2 ml-4">
+              <Select value={selectedDate.getMonth().toString()} onValueChange={handleMonthChange}>
+                  <SelectTrigger className="w-[120px] h-9">
+                      <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>)}
+                  </SelectContent>
+              </Select>
+              <Select value={selectedDate.getFullYear().toString()} onValueChange={handleYearChange}>
+                  <SelectTrigger className="w-[90px] h-9">
+                      <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                  </SelectContent>
+              </Select>
+          </div>
           <div className="relative ml-auto flex-1 md:grow-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Popover open={isSearchOpen && searchSuggestions.length > 0} onOpenChange={setIsSearchOpen}>
@@ -343,9 +393,11 @@ export default function DashboardPage() {
             </TabsContent>
             <TabsContent value="calendar" className="mt-4">
               <CalendarView 
-                transactions={displayedTransactions}
+                transactions={transactions}
                 onEdit={handleEdit}
                 onDelete={setDeletingTransactionId}
+                month={selectedDate}
+                onMonthChange={setSelectedDate}
               />
             </TabsContent>
           </Tabs>

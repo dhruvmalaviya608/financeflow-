@@ -49,7 +49,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 export default function SpendingBreakdown({ transactions }: SpendingBreakdownProps) {
   const { data, totalExpenses } = useMemo(() => {
     const expenseData = transactions
-      .filter(t => t.type === 'expense' && t.currency === 'USD' && new Date(t.date).getMonth() === new Date().getMonth())
+      .filter(t => t.type === 'expense' && t.currency === 'USD')
       .reduce((acc, transaction) => {
         const category = transaction.category;
         if (!acc[category]) {

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { format, isSameMonth, startOfMonth } from 'date-fns';
+import { format, isSameMonth } from 'date-fns';
 import type { Transaction } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -23,10 +23,11 @@ type CalendarViewProps = {
   transactions: Transaction[];
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
+  month: Date;
+  onMonthChange: (date: Date) => void;
 };
 
-export default function CalendarView({ transactions, onEdit, onDelete }: CalendarViewProps) {
-  const [month, setMonth] = useState<Date>(startOfMonth(new Date()));
+export default function CalendarView({ transactions, onEdit, onDelete, month, onMonthChange }: CalendarViewProps) {
   const [selectedTransactions, setSelectedTransactions] = useState<Transaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -175,7 +176,7 @@ export default function CalendarView({ transactions, onEdit, onDelete }: Calenda
         <CardContent className="p-0 sm:p-2">
           <Calendar
             month={month}
-            onMonthChange={setMonth}
+            onMonthChange={onMonthChange}
             components={{ Day: DayContent }}
             className="p-0"
             classNames={{
