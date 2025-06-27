@@ -223,7 +223,10 @@ export default function DashboardPage() {
     }
     
     if (viewMode === 'yearly') {
-        return transactions;
+        return transactions.filter(transaction => {
+            const transactionDate = new Date(transaction.date);
+            return transactionDate.getFullYear() === selectedDate.getFullYear();
+        });
     }
 
     if (viewMode === 'monthly') {
@@ -303,16 +306,14 @@ export default function DashboardPage() {
                     </SelectContent>
                 </Select>
               )}
-              {viewMode !== 'yearly' && (
-                <Select value={selectedDate.getFullYear().toString()} onValueChange={handleYearChange}>
-                    <SelectTrigger className="w-[90px] h-9">
-                        <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-              )}
+              <Select value={selectedDate.getFullYear().toString()} onValueChange={handleYearChange}>
+                  <SelectTrigger className="w-[90px] h-9">
+                      <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                  </SelectContent>
+              </Select>
           </div>
           <div className="relative ml-auto flex-1 md:grow-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

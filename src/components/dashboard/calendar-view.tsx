@@ -76,9 +76,7 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
       const weekStart = startOfWeek(selectedDay);
       const weekEnd = endOfWeek(selectedDay);
       statsTxs = transactions.filter(t => isWithinInterval(t.date, { start: weekStart, end: weekEnd }));
-    } else if (view === 'total') {
-      statsTxs = transactions;
-    } else { // monthly
+    } else { // monthly or total
       statsTxs = transactions.filter((t) => isSameMonth(t.date, month));
     }
 
@@ -97,7 +95,7 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
   }, [transactions, month, view, selectedDay]);
 
   const handleDayClick = (day: Date) => {
-    if (!isSameMonth(day, month)) {
+    if (!isSameMonth(day, month) && view === 'monthly') {
       return;
     }
     setSelectedDay(day);
