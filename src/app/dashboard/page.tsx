@@ -355,7 +355,7 @@ export default function DashboardPage() {
                 <DialogDescription>
                   {editingTransaction ? 'Update the details below.' : 'Fill in the details below to log a new income or expense.'}
                 </DialogDescription>
-              </Header>
+              </DialogHeader>
               <AddTransactionForm 
                 onFormSubmit={handleSaveTransaction}
                 setDialogOpen={setAddTransactionOpen}
@@ -441,5 +441,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
