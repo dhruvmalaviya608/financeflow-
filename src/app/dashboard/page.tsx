@@ -48,6 +48,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { formatCurrency } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, setMonth as setMonthInDate, setYear as setYearInDate } from 'date-fns';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 function UserMenu() {
   const router = useRouter();
@@ -370,6 +371,7 @@ export default function DashboardPage() {
                 />
               </DialogContent>
             </Dialog>
+            <ThemeToggle />
             <Suspense fallback={<Skeleton className="h-10 w-24 rounded-full" />}>
               <UserMenu />
             </Suspense>

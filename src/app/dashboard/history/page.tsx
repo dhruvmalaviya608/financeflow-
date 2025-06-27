@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 export default function HistoryPage() {
   const { 
@@ -116,6 +117,7 @@ export default function HistoryPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
+            <ThemeToggle />
             <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
               setAddTransactionOpen(isOpen);
               if (!isOpen) {
