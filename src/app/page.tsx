@@ -44,15 +44,15 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" />
+              <Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" defaultValue="John Doe" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="name@example.com" required autoComplete="email" />
+              <Input id="email" name="email" type="email" placeholder="name@example.com" required autoComplete="email" defaultValue="name@example.com" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required autoComplete="current-password" />
+              <Input id="password" name="password" type="password" required autoComplete="current-password" defaultValue="password" />
             </div>
             <Button type="submit" className="w-full">
               Login
