@@ -425,6 +425,7 @@ export default function DashboardPage() {
                 onDelete={setDeletingTransactionId}
                 month={selectedDate}
                 onMonthChange={setSelectedDate}
+                onAddTransaction={handleAddTransaction}
               />
             </TabsContent>
           </Tabs>

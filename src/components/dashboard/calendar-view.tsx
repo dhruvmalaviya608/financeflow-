@@ -25,9 +25,10 @@ type CalendarViewProps = {
   onDelete: (id: string) => void;
   month: Date;
   onMonthChange: (date: Date) => void;
+  onAddTransaction: (date: Date) => void;
 };
 
-export default function CalendarView({ transactions, onEdit, onDelete, month, onMonthChange }: CalendarViewProps) {
+export default function CalendarView({ transactions, onEdit, onDelete, month, onMonthChange, onAddTransaction }: CalendarViewProps) {
   const [selectedTransactions, setSelectedTransactions] = useState<Transaction[]>([]);
   const [selectedDateForDialog, setSelectedDateForDialog] = useState<Date | null>(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -96,6 +97,9 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
   }, [transactions, month, view, selectedDay]);
 
   const handleDayClick = (day: Date) => {
+    if (!isSameMonth(day, month)) {
+      return;
+    }
     setSelectedDay(day);
     const dayKey = format(day, 'yyyy-MM-dd');
     const dayData = transactionsByDay[dayKey];
@@ -103,6 +107,8 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
       setSelectedTransactions(dayData.transactions);
       setSelectedDateForDialog(day);
       setDialogOpen(true);
+    } else {
+      onAddTransaction(day);
     }
   };
 
