@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Eye, EyeOff, Package } from 'lucide-react';
@@ -19,12 +18,20 @@ import React, { useState } from 'react';
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError(null); // Clear previous errors
     const formData = new FormData(event.currentTarget);
     const name = formData.get('name') as string;
-    router.push(`/dashboard?name=${encodeURIComponent(name)}`);
+    const password = formData.get('password') as string;
+
+    if (password === '1234') {
+      router.push(`/dashboard?name=${encodeURIComponent(name)}`);
+    } else {
+      setError('Incorrect password. Please try again.');
+    }
   };
 
   return (
@@ -60,7 +67,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'} 
                   required 
                   autoComplete="current-password" 
-                  defaultValue="password" 
+                  defaultValue="1234" 
                 />
                  <button
                   type="button"
@@ -75,6 +82,9 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+              {error && (
+                <p className="pt-1 text-sm text-destructive">{error}</p>
+              )}
             </div>
             <Button type="submit" className="w-full">
               Login
