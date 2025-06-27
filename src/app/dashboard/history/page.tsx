@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -45,6 +46,7 @@ export default function HistoryPage() {
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
   const [newTransactionDate, setNewTransactionDate] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -137,6 +139,8 @@ export default function HistoryPage() {
             onEdit={handleEdit}
             onDelete={setDeletingTransactionId}
             onAdd={handleAddTransaction}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
           />
         </main>
       </div>
