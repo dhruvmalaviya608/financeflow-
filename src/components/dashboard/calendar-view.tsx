@@ -73,26 +73,56 @@ export default function CalendarView({ transactions }: { transactions: Transacti
     const dayNumber = format(date, 'd');
     
     if (!isSameMonth(date, month)) {
-      return <div className="text-muted-foreground/50">{dayNumber}</div>;
+      return (
+        <div className="flex justify-end p-1.5 h-full">
+          <div className="text-xs text-muted-foreground/50">{dayNumber}</div>
+        </div>
+      )
     }
 
-    const total = (dayData?.income || 0) - (dayData?.expense || 0);
+    const MAX_DOTS = 4;
+    const transactions = dayData?.transactions || [];
+    const visibleTransactions = transactions.slice(0, MAX_DOTS);
+    const hiddenCount = transactions.length > visibleTransactions.length ? transactions.length - visibleTransactions.length : 0;
+
+    const formatAmount = (amount: number) => {
+      return amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    };
 
     return (
       <div className="flex flex-col h-full w-full p-1.5" onClick={() => handleDayClick(date)}>
-        <div className="w-full text-right text-xs mb-1">{dayNumber}</div>
-        <div className="flex-grow flex flex-col justify-end w-full space-y-1">
-          {dayData?.income > 0 && <div className="w-full h-1.5 bg-primary rounded-full" />}
-          {dayData?.expense > 0 && <div className="w-full h-1.5 bg-destructive rounded-full" />}
-          {total !== 0 && (
-            <p className={cn("text-xs font-bold truncate", total > 0 ? 'text-primary' : 'text-destructive')}>
-              {formatCurrency(total)}
-            </p>
+        <div className="text-right text-xs font-semibold">{dayNumber}</div>
+        
+        <div className="flex-grow min-h-0 pt-1">
+          {transactions.length > 0 && (
+            <div className="flex items-center flex-wrap gap-1">
+                {visibleTransactions.map(t => (
+                    <div key={t.id} className={cn(
+                        "h-1.5 w-1.5 rounded-full",
+                        t.type === 'income' ? 'bg-primary' : 'bg-destructive'
+                    )} />
+                ))}
+                {hiddenCount > 0 && (
+                    <span className="text-[10px] text-muted-foreground font-bold">+{hiddenCount}</span>
+                )}
+            </div>
           )}
+        </div>
+        
+        <div className="text-xs font-semibold text-right space-y-0.5">
+            {dayData?.income > 0 && (
+                <p className="text-primary truncate">{formatAmount(dayData.income)}</p>
+            )}
+            {dayData?.expense > 0 && (
+                <p className="text-destructive truncate">{formatAmount(dayData.expense)}</p>
+            )}
         </div>
       </div>
     );
-  };
+  }
 
   return (
     <>
@@ -129,7 +159,7 @@ export default function CalendarView({ transactions }: { transactions: Transacti
             components={{ Day: DayContent }}
             className="p-0"
             classNames={{
-              day: 'h-24 md:h-28 relative border-t border-l first:border-l-0',
+              day: 'h-24 md:h-28 border-t border-l first:border-l-0 p-0',
               head_row: 'border-b',
               row: 'flex w-full',
               table: 'border-collapse w-full border-b',
