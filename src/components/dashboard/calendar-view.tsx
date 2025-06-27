@@ -191,10 +191,11 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
                 </div>
             </div>
         </CardHeader>
-        <CardContent className="p-0 sm:p-2">
+        <CardContent className={cn("p-0 sm:p-2", (view === 'weekly' || view === 'daily') && 'week-view-container')}>
           <Calendar
             month={month}
             onMonthChange={onMonthChange}
+            onDayClick={handleDayClick}
             components={{ Day: DayContent }}
             selected={view === 'daily' ? selectedDay : view === 'weekly' ? { from: startOfWeek(selectedDay), to: endOfWeek(selectedDay) } : undefined}
             className="p-0"
