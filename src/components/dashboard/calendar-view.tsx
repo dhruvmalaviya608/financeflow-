@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import { format, isSameMonth } from 'date-fns';
+import { useState, useMemo, useEffect } from 'react';
+import { format, isSameMonth, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from 'date-fns';
 import type { Transaction } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -29,15 +29,19 @@ type CalendarViewProps = {
 
 export default function CalendarView({ transactions, onEdit, onDelete, month, onMonthChange }: CalendarViewProps) {
   const [selectedTransactions, setSelectedTransactions] = useState<Transaction[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDateForDialog, setSelectedDateForDialog] = useState<Date | null>(null);
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [view, setView] = useState<'monthly' | 'weekly' | 'daily' | 'total'>('monthly');
+  const [selectedDay, setSelectedDay] = useState<Date>(month);
 
-  const { transactionsByDay, monthStats } = useMemo(() => {
+  useEffect(() => {
+    setSelectedDay(month);
+  }, [month]);
+
+  const { transactionsByDay, stats } = useMemo(() => {
     const filteredTransactions = transactions.filter((t) => isSameMonth(t.date, month));
     
     const byDay: TransactionsByDay = {};
-    let totalIncome = 0;
-    let totalExpense = 0;
 
     for (const t of filteredTransactions) {
       if (t.currency !== 'USD') continue; // Aggregating only USD for simplicity
@@ -48,42 +52,56 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
       byDay[dayKey].transactions.push(t);
       if (t.type === 'income') {
         byDay[dayKey].income += t.amount;
-        totalIncome += t.amount;
       } else if (t.type === 'expense') {
         byDay[dayKey].expense += t.amount;
-        totalExpense += t.amount;
       }
     }
     
-    // Add transactions with other currencies to the daily list without affecting totals
     for (const t of filteredTransactions) {
         if (t.currency === 'USD') continue;
         const dayKey = format(t.date, 'yyyy-MM-dd');
         if (!byDay[dayKey]) {
             byDay[dayKey] = { transactions: [], income: 0, expense: 0 };
         }
-        // Avoid duplicates
         if (!byDay[dayKey].transactions.find(tx => tx.id === t.id)) {
             byDay[dayKey].transactions.push(t);
         }
     }
 
+    let statsTxs: Transaction[];
+    if (view === 'daily') {
+      statsTxs = transactions.filter(t => isSameDay(t.date, selectedDay));
+    } else if (view === 'weekly') {
+      const weekStart = startOfWeek(selectedDay);
+      const weekEnd = endOfWeek(selectedDay);
+      statsTxs = transactions.filter(t => isWithinInterval(t.date, { start: weekStart, end: weekEnd }));
+    } else if (view === 'total') {
+      statsTxs = transactions;
+    } else { // monthly
+      statsTxs = transactions.filter((t) => isSameMonth(t.date, month));
+    }
+
+    const usdTransactions = statsTxs.filter(t => t.currency === 'USD');
+    const totalIncome = usdTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const totalExpense = usdTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
     return { 
       transactionsByDay: byDay,
-      monthStats: {
+      stats: {
         income: totalIncome,
         expense: totalExpense,
         balance: totalIncome - totalExpense
       }
     };
-  }, [transactions, month]);
+  }, [transactions, month, view, selectedDay]);
 
   const handleDayClick = (day: Date) => {
+    setSelectedDay(day);
     const dayKey = format(day, 'yyyy-MM-dd');
     const dayData = transactionsByDay[dayKey];
     if (dayData && dayData.transactions.length > 0) {
       setSelectedTransactions(dayData.transactions);
-      setSelectedDate(day);
+      setSelectedDateForDialog(day);
       setDialogOpen(true);
     }
   };
@@ -150,26 +168,26 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2">
-                <Button variant="secondary" size="sm">Monthly</Button>
-                <Button variant="ghost" size="sm">Weekly</Button>
-                <Button variant="ghost" size="sm">Daily</Button>
-                 <Button variant="ghost" size="sm">Total</Button>
+                <Button variant={view === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('monthly')}>Monthly</Button>
+                <Button variant={view === 'weekly' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('weekly')}>Weekly</Button>
+                <Button variant={view === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('daily')}>Daily</Button>
+                <Button variant={view === 'total' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('total')}>Total</Button>
             </div>
             <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
                     <Scale className="h-4 w-4 text-muted-foreground"/>
                     <span>Balance:</span>
-                    <span className="font-semibold">{formatCurrency(monthStats.balance, 'USD')}</span>
+                    <span className="font-semibold">{formatCurrency(stats.balance, 'USD')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-primary">
                     <TrendingUp className="h-4 w-4"/>
                     <span>Income:</span>
-                    <span className="font-semibold">{formatCurrency(monthStats.income, 'USD')}</span>
+                    <span className="font-semibold">{formatCurrency(stats.income, 'USD')}</span>
                 </div>
                  <div className="flex items-center gap-2 text-destructive">
                     <TrendingDown className="h-4 w-4"/>
                     <span>Expense:</span>
-                    <span className="font-semibold">{formatCurrency(monthStats.expense, 'USD')}</span>
+                    <span className="font-semibold">{formatCurrency(stats.expense, 'USD')}</span>
                 </div>
             </div>
         </CardHeader>
@@ -178,6 +196,7 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
             month={month}
             onMonthChange={onMonthChange}
             components={{ Day: DayContent }}
+            selected={view === 'daily' ? selectedDay : view === 'weekly' ? { from: startOfWeek(selectedDay), to: endOfWeek(selectedDay) } : undefined}
             className="p-0"
             classNames={{
               table: 'w-full border-collapse table-fixed',
@@ -186,10 +205,13 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
               row: '',
               cell: 'border relative',
               day: 'h-24 md:h-28 w-full p-0',
-              day_selected: '',
+              day_selected: 'bg-primary/20 text-primary-foreground',
               day_today: 'bg-accent/50',
               day_outside: 'text-muted-foreground/50',
               day_disabled: '',
+              day_range_start: 'day-range-start bg-primary/20 rounded-l-md',
+              day_range_end: 'day-range-end bg-primary/20 rounded-r-md',
+              day_range_middle: 'day-range-middle bg-primary/10',
             }}
           />
         </CardContent>
@@ -197,7 +219,7 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
       <TransactionDetailsDialog
         open={isDialogOpen}
         onOpenChange={setDialogOpen}
-        date={selectedDate}
+        date={selectedDateForDialog}
         transactions={selectedTransactions}
         onEdit={onEdit}
         onDelete={onDelete}
