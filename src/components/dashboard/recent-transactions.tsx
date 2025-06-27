@@ -50,7 +50,7 @@ export default function RecentTransactions({ transactions, onEdit, onDelete }: R
                 </div>
                 <div className={`font-medium text-right ${transaction.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
                     {transaction.type === 'income' ? '+' : '-'}
-                    {formatCurrency(transaction.amount)}
+                    {formatCurrency(transaction.amount, transaction.currency)}
                 </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

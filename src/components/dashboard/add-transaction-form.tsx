@@ -28,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar as CalendarIcon, CreditCard, Folder, DollarSign, Pen, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -50,7 +50,16 @@ const FormSchema = z.object({
   date: z.date({
     required_error: "A date is required.",
   }),
+  currency: z.string().min(2, { message: 'Currency is required.' }),
 });
+
+const currencies = [
+  { code: 'USD', symbol: '$' },
+  { code: 'EUR', symbol: '€' },
+  { code: 'JPY', symbol: '¥' },
+  { code: 'GBP', symbol: '£' },
+  { code: 'INR', symbol: '₹' },
+];
 
 type AddTransactionFormProps = {
   onFormSubmit: (data: Omit<Transaction, 'id' | 'description'> & { description: string }, id?: string) => void;
@@ -222,6 +231,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
       category: 'Food',
       account: 'Cash',
       date: new Date(),
+      currency: 'USD',
     },
   });
   
@@ -236,6 +246,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
         category: 'Food',
         account: 'Cash',
         date: new Date(),
+        currency: 'USD',
       });
     }
   }, [initialData, form]);
@@ -247,7 +258,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
     }, initialData?.id);
     toast({
       title: `Transaction ${initialData ? 'updated' : 'added'}!`,
-      description: `${data.category} for ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(data.amount)} has been logged.`,
+      description: `${data.category} for ${formatCurrency(data.amount, data.currency)} has been logged.`,
     })
     setDialogOpen(false);
   }
@@ -351,17 +362,32 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
                 render={({ field }) => (
                 <FormItem className="flex items-center justify-between p-3">
                     <FormLabel className="flex items-center gap-3 text-card-foreground"><DollarSign className="w-5 h-5 text-muted-foreground" /> Amount</FormLabel>
-                    <FormControl>
-                    <div className="relative flex items-center">
-                        <span className="text-card-foreground">$</span>
+                    <div className="flex items-center">
+                      <FormField
+                          control={form.control}
+                          name="currency"
+                          render={({ field: currencyField }) => (
+                              <Select onValueChange={currencyField.onChange} defaultValue={currencyField.value}>
+                                  <SelectTrigger className="w-auto border-0 focus:ring-0 p-0 h-auto justify-end bg-transparent font-semibold text-base">
+                                      <SelectValue placeholder="$" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {currencies.map((c) => (
+                                          <SelectItem key={c.code} value={c.code}>{c.symbol} {c.code}</SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          )}
+                      />
+                      <FormControl>
                         <Input 
-                        type="number"
-                        placeholder="0.00" 
-                        {...field}
-                        className="w-auto p-0 h-auto border-0 text-right focus-visible:ring-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          type="number"
+                          placeholder="0.00" 
+                          {...field}
+                          className="w-auto p-0 h-auto border-0 text-right focus-visible:ring-0 bg-transparent text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
+                      </FormControl>
                     </div>
-                    </FormControl>
                 </FormItem>
                 )}
             />
@@ -369,6 +395,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, c
          <div className="text-destructive text-sm min-h-[1.25rem]">
             {form.formState.errors.amount?.message ? <p>{form.formState.errors.amount?.message}</p> : null}
             {form.formState.errors.category?.message ? <p>{form.formState.errors.category?.message}</p> : null}
+            {form.formState.errors.currency?.message ? <p>{form.formState.errors.currency?.message}</p> : null}
          </div>
 
         <FormField

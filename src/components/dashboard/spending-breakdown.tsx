@@ -36,7 +36,7 @@ const CustomTooltip = ({ active, payload }: any) => {
               Amount
             </span>
             <span className="font-bold">
-              {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].value)}
+              {formatCurrency(payload[0].value, 'USD')}
             </span>
           </div>
         </div>
@@ -49,7 +49,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 export default function SpendingBreakdown({ transactions }: SpendingBreakdownProps) {
   const { data, totalExpenses } = useMemo(() => {
     const expenseData = transactions
-      .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === new Date().getMonth())
+      .filter(t => t.type === 'expense' && t.currency === 'USD' && new Date(t.date).getMonth() === new Date().getMonth())
       .reduce((acc, transaction) => {
         const category = transaction.category;
         if (!acc[category]) {
@@ -124,7 +124,7 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
                         <span className="text-muted-foreground">{entry.name}</span>
                     </div>
                     <div className="font-medium text-right">
-                        <span className="text-foreground">{formatCurrency(entry.value)}</span>
+                        <span className="text-foreground">{formatCurrency(entry.value, 'USD')}</span>
                         <span className="ml-4 w-12 inline-block text-right text-muted-foreground">
                             ({totalExpenses > 0 ? ((entry.value / totalExpenses) * 100).toFixed(0) : 0}%)
                         </span>

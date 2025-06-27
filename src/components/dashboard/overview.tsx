@@ -12,11 +12,15 @@ type OverviewProps = {
 
 export default function Overview({ transactions }: OverviewProps) {
   const { totalIncome, totalExpenses, balance } = useMemo(() => {
-    const totalIncome = transactions
+    // For this overview, we'll aggregate transactions in USD.
+    // A production app would require currency conversion for mixed currencies.
+    const usdTransactions = transactions.filter(t => t.currency === 'USD');
+
+    const totalIncome = usdTransactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const totalExpenses = transactions
+    const totalExpenses = usdTransactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
@@ -33,7 +37,7 @@ export default function Overview({ transactions }: OverviewProps) {
           <Scale className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(balance)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(balance, 'USD')}</div>
         </CardContent>
       </Card>
       <Card>
@@ -42,7 +46,7 @@ export default function Overview({ transactions }: OverviewProps) {
           <TrendingUp className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary">{formatCurrency(totalIncome)}</div>
+          <div className="text-2xl font-bold text-primary">{formatCurrency(totalIncome, 'USD')}</div>
         </CardContent>
       </Card>
       <Card>
@@ -51,7 +55,7 @@ export default function Overview({ transactions }: OverviewProps) {
           <TrendingDown className="h-4 w-4 text-destructive" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</div>
+          <div className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses, 'USD')}</div>
         </CardContent>
       </Card>
     </div>

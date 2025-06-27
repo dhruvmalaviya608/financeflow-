@@ -39,6 +39,7 @@ export default function CalendarView({ transactions, onEdit, onDelete }: Calenda
     let totalExpense = 0;
 
     for (const t of filteredTransactions) {
+      if (t.currency !== 'USD') continue; // Aggregating only USD for simplicity
       const dayKey = format(t.date, 'yyyy-MM-dd');
       if (!byDay[dayKey]) {
         byDay[dayKey] = { transactions: [], income: 0, expense: 0 };
@@ -53,6 +54,19 @@ export default function CalendarView({ transactions, onEdit, onDelete }: Calenda
       }
     }
     
+    // Add transactions with other currencies to the daily list without affecting totals
+    for (const t of filteredTransactions) {
+        if (t.currency === 'USD') continue;
+        const dayKey = format(t.date, 'yyyy-MM-dd');
+        if (!byDay[dayKey]) {
+            byDay[dayKey] = { transactions: [], income: 0, expense: 0 };
+        }
+        // Avoid duplicates
+        if (!byDay[dayKey].transactions.find(tx => tx.id === t.id)) {
+            byDay[dayKey].transactions.push(t);
+        }
+    }
+
     return { 
       transactionsByDay: byDay,
       monthStats: {
@@ -144,17 +158,17 @@ export default function CalendarView({ transactions, onEdit, onDelete }: Calenda
                 <div className="flex items-center gap-2">
                     <Scale className="h-4 w-4 text-muted-foreground"/>
                     <span>Balance:</span>
-                    <span className="font-semibold">{formatCurrency(monthStats.balance)}</span>
+                    <span className="font-semibold">{formatCurrency(monthStats.balance, 'USD')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-primary">
                     <TrendingUp className="h-4 w-4"/>
                     <span>Income:</span>
-                    <span className="font-semibold">{formatCurrency(monthStats.income)}</span>
+                    <span className="font-semibold">{formatCurrency(monthStats.income, 'USD')}</span>
                 </div>
                  <div className="flex items-center gap-2 text-destructive">
                     <TrendingDown className="h-4 w-4"/>
                     <span>Expense:</span>
-                    <span className="font-semibold">{formatCurrency(monthStats.expense)}</span>
+                    <span className="font-semibold">{formatCurrency(monthStats.expense, 'USD')}</span>
                 </div>
             </div>
         </CardHeader>

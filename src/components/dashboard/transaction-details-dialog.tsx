@@ -66,7 +66,7 @@ export default function TransactionDetailsDialog({ open, onOpenChange, date, tra
                         </div>
                         <div className={`font-medium text-right ${transaction.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
                             {transaction.type === 'income' ? '+' : '-'}
-                            {formatCurrency(transaction.amount)}
+                            {formatCurrency(transaction.amount, transaction.currency)}
                         </div>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

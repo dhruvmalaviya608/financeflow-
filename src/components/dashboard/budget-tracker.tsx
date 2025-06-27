@@ -35,7 +35,7 @@ export default function BudgetTracker({ budget, onSetBudget, currentSpending }: 
             <Pencil className="h-4 w-4" />
           </Button>
         </CardTitle>
-        <CardDescription>Your spending progress for this month.</CardDescription>
+        <CardDescription>Your spending progress for this month (in USD).</CardDescription>
       </CardHeader>
       <CardContent>
         {isEditing ? (
@@ -51,8 +51,8 @@ export default function BudgetTracker({ budget, onSetBudget, currentSpending }: 
         ) : (
           <>
             <div className="mb-2 flex justify-between items-baseline">
-                <span className="text-2xl font-bold">{formatCurrency(currentSpending)}</span>
-                <span className="text-sm text-muted-foreground">/ {formatCurrency(budget)}</span>
+                <span className="text-2xl font-bold">{formatCurrency(currentSpending, 'USD')}</span>
+                <span className="text-sm text-muted-foreground">/ {formatCurrency(budget, 'USD')}</span>
             </div>
             <Progress value={progress > 100 ? 100 : progress} className="h-3" />
           </>
@@ -61,8 +61,8 @@ export default function BudgetTracker({ budget, onSetBudget, currentSpending }: 
       <CardFooter>
          <p className={`text-sm ${remaining < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
           {remaining >= 0
-            ? `${formatCurrency(remaining)} remaining`
-            : `${formatCurrency(Math.abs(remaining))} over budget`}
+            ? `${formatCurrency(remaining, 'USD')} remaining`
+            : `${formatCurrency(Math.abs(remaining), 'USD')} over budget`}
         </p>
       </CardFooter>
     </Card>

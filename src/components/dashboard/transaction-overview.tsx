@@ -19,12 +19,12 @@ export function TransactionOverview() {
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                             <span className="text-sm text-muted-foreground">Profit</span>
-                            <span className="text-sm font-semibold">{formatCurrency(4573)}</span>
+                            <span className="text-sm font-semibold">{formatCurrency(4573, 'USD')}</span>
                         </div>
                          <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-primary"></span>
                             <span className="text-sm text-muted-foreground">Expenses</span>
-                            <span className="text-sm font-semibold">{formatCurrency(523)}</span>
+                            <span className="text-sm font-semibold">{formatCurrency(523, 'USD')}</span>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@ export function TransactionOverview() {
                         <div className="grid grid-cols-1 gap-1.5">
                             <span className="text-sm text-muted-foreground">{payload[0].payload.name}</span>
                             <span className="font-bold">
-                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].value as number)}
+                                {formatCurrency(payload[0].value as number, 'USD')}
                             </span>
                         </div>
                     </div>

@@ -11,6 +11,7 @@ export type Transaction = {
   type: 'income' | 'expense' | 'transfer';
   category: TransactionCategory;
   account: Account;
+  currency: string;
 };
 
 export type Budget = {
