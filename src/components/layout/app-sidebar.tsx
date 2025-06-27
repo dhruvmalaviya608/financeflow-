@@ -1,25 +1,17 @@
-
 'use client';
 
 import {
-  ArrowRightLeft,
   ChevronDown,
-  ChevronRight,
   LayoutGrid,
   Package,
   Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 const NavLink = ({
@@ -45,42 +37,6 @@ const NavLink = ({
   </Link>
 );
 
-const CollapsibleNavLink = ({
-  title,
-  icon,
-  children,
-  isActive,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  isActive: boolean;
-}) => {
-    const [isOpen, setIsOpen] = useState(isActive);
-    return (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CollapsibleTrigger asChild>
-            <div className='flex w-full items-center'>
-                 <span
-                    className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary w-full',
-                    isActive && 'text-primary'
-                    )}
-                >
-                    {icon}
-                    {title}
-                    <span className="ml-auto">
-                        {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </span>
-                </span>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pl-5 pt-1 space-y-1">
-            {children}
-          </CollapsibleContent>
-        </Collapsible>
-    )
-};
 
 function UserProfile() {
   const searchParams = useSearchParams();
@@ -143,11 +99,6 @@ export default function AppSidebar() {
             >
               Overview
             </NavLink>
-            <CollapsibleNavLink title="Workspaces" icon={<ArrowRightLeft className="h-4 w-4" />} isActive={false}>
-                <NavLink href="#" isActive={false} icon={<span className="h-4 w-4" />}>Team</NavLink>
-                <NavLink href="#" isActive={false} icon={<span className="h-4 w-4" />}>Investor</NavLink>
-            </CollapsibleNavLink>
-
 
             <p className="px-3 mt-4 py-2 text-xs font-semibold text-muted-foreground/80">
               Others
