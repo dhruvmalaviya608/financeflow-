@@ -180,10 +180,10 @@ export default function CalendarView({ transactions, onEdit, onDelete }: Calenda
             className="p-0"
             classNames={{
               table: 'w-full border-collapse table-fixed',
-              head_row: 'border-b',
-              head_cell: 'text-muted-foreground font-normal text-xs text-center p-2',
+              head_row: '',
+              head_cell: 'text-muted-foreground font-normal text-xs text-center p-2 border',
               row: '',
-              cell: 'border-t border-l first:border-l-0 relative',
+              cell: 'border relative',
               day: 'h-24 md:h-28 w-full p-0',
               day_selected: '',
               day_today: 'bg-accent/50',
