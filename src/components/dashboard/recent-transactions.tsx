@@ -165,7 +165,6 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-9 gap-1">
-                        <ArrowDownUp className="h-4 w-4" />
                         Sort
                     </Button>
                     </DropdownMenuTrigger>
