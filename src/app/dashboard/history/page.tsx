@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function HistoryPage() {
@@ -34,7 +34,8 @@ export default function HistoryPage() {
     categories, 
     addTransaction, 
     editTransaction, 
-    deleteTransaction, 
+    deleteTransaction,
+    deleteMultipleTransactions,
     addCategory, 
     editCategory,
     deleteCategory,
@@ -47,6 +48,8 @@ export default function HistoryPage() {
   const [newTransactionDate, setNewTransactionDate] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
+  const [selection, setSelection] = useState<string[]>([]);
+  const [isBulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -79,6 +82,13 @@ export default function HistoryPage() {
     setAddTransactionOpen(true);
   }
 
+  const handleConfirmBulkDelete = () => {
+    if (selection.length === 0) return;
+    deleteMultipleTransactions(selection);
+    setSelection([]);
+    setBulkDeleteConfirmOpen(false);
+  };
+
   const displayedTransactions = searchQuery
     ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
     : transactions;
@@ -88,7 +98,7 @@ export default function HistoryPage() {
       <div className="flex w-full flex-col">
         <header className="sticky top-0 flex h-14 items-center justify-between gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <h1 className="text-xl font-semibold">History</h1>
-          <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-2 ml-auto">
             <div className="relative flex-1 md:grow-0">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -99,6 +109,12 @@ export default function HistoryPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
+            {selection.length > 0 ? (
+              <Button variant="destructive" size="sm" className="gap-1" onClick={() => setBulkDeleteConfirmOpen(true)}>
+                <Trash2 className="h-4 w-4" />
+                Delete ({selection.length})
+              </Button>
+            ) : null}
             <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
               setAddTransactionOpen(isOpen);
               if (!isOpen) {
@@ -141,6 +157,8 @@ export default function HistoryPage() {
             onAdd={handleAddTransaction}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            selection={selection}
+            onSelectionChange={setSelection}
           />
         </main>
       </div>
@@ -159,6 +177,22 @@ export default function HistoryPage() {
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={isBulkDeleteConfirmOpen} onOpenChange={setBulkDeleteConfirmOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete {selection.length} selected transaction{selection.length > 1 ? 's' : ''}.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setBulkDeleteConfirmOpen(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmBulkDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+
        <AlertDialog open={!!deletingCategory} onOpenChange={(isOpen) => !isOpen && setDeletingCategory(null)}>
           <AlertDialogContent>
               <AlertDialogHeader>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
@@ -11,6 +12,7 @@ type TransactionsContextType = {
   addTransaction: (data: Omit<Transaction, 'id'>) => void;
   editTransaction: (data: Omit<Transaction, 'id'>, id: string) => void;
   deleteTransaction: (id: string) => void;
+  deleteMultipleTransactions: (ids: string[]) => void;
   addCategory: (category: TransactionCategory) => void;
   editCategory: (oldCategory: string, newCategory: string) => void;
   deleteCategory: (category: string) => void;
@@ -37,6 +39,14 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   
   const deleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
+  };
+
+  const deleteMultipleTransactions = (ids: string[]) => {
+    setTransactions(prev => prev.filter(t => !ids.includes(t.id)));
+    toast({
+      title: `${ids.length} transaction${ids.length > 1 ? 's' : ''} deleted.`,
+      variant: 'destructive',
+    });
   };
 
   const addCategory = (category: TransactionCategory) => {
@@ -75,6 +85,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
     addTransaction,
     editTransaction,
     deleteTransaction,
+    deleteMultipleTransactions,
     addCategory,
     editCategory,
     deleteCategory,

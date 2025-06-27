@@ -28,6 +28,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -36,6 +37,8 @@ type RecentTransactionsProps = {
   onAdd: (date?: Date) => void;
   viewMode: 'daily' | 'monthly' | 'yearly';
   onViewModeChange: (mode: 'daily' | 'monthly' | 'yearly') => void;
+  selection?: string[];
+  onSelectionChange?: (ids: string[]) => void;
 };
 
 type TransactionsByGroup = {
@@ -46,7 +49,7 @@ type TransactionsByGroup = {
   expense: number;
 };
 
-export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd, viewMode, onViewModeChange }: RecentTransactionsProps) {
+export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd, viewMode, onViewModeChange, selection, onSelectionChange }: RecentTransactionsProps) {
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'description'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -131,6 +134,26 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
       return { main: '', sub: '' };
   };
 
+  const handleTransactionSelect = (transactionId: string, isSelected: boolean) => {
+    if (!selection || !onSelectionChange) return;
+    if (isSelected) {
+      onSelectionChange([...selection, transactionId]);
+    } else {
+      onSelectionChange(selection.filter(id => id !== transactionId));
+    }
+  };
+
+  const handleGroupSelect = (groupTransactionIds: string[], select: boolean) => {
+    if (!selection || !onSelectionChange) return;
+    if (select) {
+      const newSelection = [...new Set([...selection, ...groupTransactionIds])];
+      onSelectionChange(newSelection);
+    } else {
+      const newSelection = selection.filter(id => !groupTransactionIds.includes(id));
+      onSelectionChange(newSelection);
+    }
+  };
+
   const defaultOpen = useMemo(() => groupedTransactions.map(g => g.key), [groupedTransactions]);
 
   return (
@@ -175,12 +198,28 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
           <Accordion type="multiple" className="w-full space-y-4" defaultValue={defaultOpen}>
             {groupedTransactions.map(({ key, date, transactions: dayTransactions, income, expense }) => {
               const { main: titleMain, sub: titleSub } = getGroupTitle(date);
+              const groupTransactionIds = dayTransactions.map(t => t.id);
+              const selectedInGroupCount = groupTransactionIds.filter(id => selection?.includes(id)).length;
+              const allSelected = groupTransactionIds.length > 0 && selectedInGroupCount === groupTransactionIds.length;
+              const someSelected = selectedInGroupCount > 0 && !allSelected;
+
               return (
                 <AccordionItem value={key} key={key} className="border-b-0">
                   <AccordionTrigger className="hover:no-underline py-0 font-normal border-b pb-2 mb-4">
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-3xl font-bold">{titleMain}</span>
-                        <span className="text-sm text-muted-foreground">{titleSub}</span>
+                      <div className="flex items-center flex-1 gap-3">
+                        {selection && onSelectionChange && (
+                          <Checkbox
+                            checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                            onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
+                            className="shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label="Select all transactions in this group"
+                          />
+                        )}
+                        <div className="flex items-baseline gap-3">
+                          <span className="text-3xl font-bold">{titleMain}</span>
+                          <span className="text-sm text-muted-foreground">{titleSub}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-4 text-sm font-semibold">
                         {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
@@ -191,6 +230,14 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
                     <div className="space-y-4">
                       {dayTransactions.map(transaction => (
                         <div key={transaction.id} className="group flex items-start gap-4">
+                           {selection && onSelectionChange && (
+                            <Checkbox
+                              checked={selection.includes(transaction.id)}
+                              onCheckedChange={(checked) => handleTransactionSelect(transaction.id, !!checked)}
+                              className="mt-1"
+                              aria-label={`Select transaction: ${transaction.description}`}
+                            />
+                          )}
                             <div className="grid gap-0.5 flex-1">
                                 <div className="flex justify-between items-start">
                                     <p className="font-medium leading-none">{transaction.description}</p>
