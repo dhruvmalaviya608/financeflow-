@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import {
   Card,
@@ -25,6 +26,18 @@ import {
   AccordionContent,
   AccordionItem,
 } from '@/components/ui/accordion';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -33,6 +46,8 @@ type RecentTransactionsProps = {
   onAdd: (date?: Date) => void;
   viewMode: 'daily' | 'monthly' | 'yearly';
   onViewModeChange: (mode: 'daily' | 'monthly' | 'yearly') => void;
+  enableBulkDelete?: boolean;
+  onDeleteMultiple?: (ids: string[]) => void;
 };
 
 type TransactionsByGroup = {
@@ -43,7 +58,44 @@ type TransactionsByGroup = {
   expense: number;
 };
 
-export default function RecentTransactions({ transactions, onEdit, onDelete, onAdd, viewMode, onViewModeChange }: RecentTransactionsProps) {
+export default function RecentTransactions({ 
+  transactions, 
+  onEdit, 
+  onDelete, 
+  onAdd, 
+  viewMode, 
+  onViewModeChange,
+  enableBulkDelete = false,
+  onDeleteMultiple
+}: RecentTransactionsProps) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+  // Clear selections when transactions change to avoid stale state
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [transactions]);
+  
+  const handleSelectTransaction = (id: string, isSelected: boolean) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (isSelected) {
+        newSet.add(id);
+      } else {
+        newSet.delete(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedIds.size > 0 && onDeleteMultiple) {
+      onDeleteMultiple(Array.from(selectedIds));
+      setSelectedIds(new Set());
+    }
+    setIsConfirmingDelete(false);
+  };
+
   const groupedTransactions = useMemo(() => {
     let groupBy: (t: Transaction) => string;
     if (viewMode === 'daily') {
@@ -114,90 +166,123 @@ export default function RecentTransactions({ transactions, onEdit, onDelete, onA
   const defaultOpen = useMemo(() => groupedTransactions.map(g => g.key), [groupedTransactions]);
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-            <CardTitle>Transactions</CardTitle>
-            <div className="flex items-center gap-1">
-                <Button variant={viewMode === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('daily')}>Daily</Button>
-                <Button variant={viewMode === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('monthly')}>Monthly</Button>
-                <Button variant={viewMode === 'yearly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('yearly')}>Yearly</Button>
-            </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {groupedTransactions.length > 0 ? (
-          <Accordion type="multiple" className="w-full space-y-4" defaultValue={defaultOpen}>
-            {groupedTransactions.map(({ key, date, transactions: dayTransactions, income, expense }) => {
-              const { main: titleMain, sub: titleSub } = getGroupTitle(date);
-              
-              return (
-                <AccordionItem value={key} key={key} className="border-b-0">
-                  <AccordionPrimitive.Header className="flex flex-1 items-center border-b pb-2 mb-4">
-                    <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group">
-                      <div className="flex items-baseline gap-3">
-                          <span className="text-3xl font-bold">{titleMain}</span>
-                          <span className="text-sm text-muted-foreground">{titleSub}</span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm font-semibold">
-                          {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
-                          {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
-                      </div>
-                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                    </AccordionPrimitive.Trigger>
-                  </AccordionPrimitive.Header>
-                  <AccordionContent className="pt-4">
-                    <div className="space-y-4">
-                      {dayTransactions.map(transaction => (
-                        <div key={transaction.id} className="group flex items-start gap-4">
-                            <div className="grid gap-0.5 flex-1 pl-1">
-                                <div className="flex justify-between items-start">
-                                    <p className="font-medium leading-none">{transaction.description}</p>
-                                    <div className="flex items-center -mt-1 -mr-2">
-                                        <p className={`font-semibold text-right ${transaction.type === 'income' ? 'text-primary' : transaction.type === 'expense' ? 'text-destructive' : ''}`}>
-                                            {transaction.type !== 'transfer' && (transaction.type === 'income' ? '+' : '-')}
-                                            {formatCurrency(transaction.amount, transaction.currency)}
-                                        </p>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onSelect={() => onAdd(date)}>
-                                                    <Plus className="mr-2 h-4 w-4" />
-                                                    <span>Add New</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem onSelect={() => onEdit(transaction)}>
-                                                    <Pencil className="mr-2 h-4 w-4" />
-                                                    <span>Edit</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => onDelete(transaction.id)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    <span>Delete</span>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-muted-foreground">{transaction.category} · {transaction.account}</p>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+              <CardTitle>Transactions</CardTitle>
+              <div className="flex items-center gap-1">
+                  {enableBulkDelete && selectedIds.size > 0 && (
+                    <Button variant="destructive" size="sm" onClick={() => setIsConfirmingDelete(true)}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete ({selectedIds.size})
+                    </Button>
+                  )}
+                  <Button variant={viewMode === 'daily' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('daily')}>Daily</Button>
+                  <Button variant={viewMode === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('monthly')}>Monthly</Button>
+                  <Button variant={viewMode === 'yearly' ? 'secondary' : 'ghost'} size="sm" onClick={() => onViewModeChange('yearly')}>Yearly</Button>
+              </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {groupedTransactions.length > 0 ? (
+            <Accordion type="multiple" className="w-full space-y-4" defaultValue={defaultOpen}>
+              {groupedTransactions.map(({ key, date, transactions: dayTransactions, income, expense }) => {
+                const { main: titleMain, sub: titleSub } = getGroupTitle(date);
+                
+                return (
+                  <AccordionItem value={key} key={key} className="border-b-0">
+                    <AccordionPrimitive.Header className="flex flex-1 items-center border-b pb-2 mb-4">
+                      <AccordionPrimitive.Trigger asChild>
+                         <button className="flex flex-1 items-center justify-between py-0 font-normal hover:no-underline group">
+                            <div className="flex items-baseline gap-3">
+                                <span className="text-3xl font-bold">{titleMain}</span>
+                                <span className="text-sm text-muted-foreground">{titleSub}</span>
                             </div>
-                        </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
-        ) : (
-            <div className="text-center text-muted-foreground py-10">
-                <p>No transactions to display.</p>
-            </div>
-        )}
-      </CardContent>
-    </Card>
+                            <div className="flex items-center gap-4 text-sm font-semibold">
+                                {income > 0 && <span className="text-primary">{formatCurrency(income, 'USD')}</span>}
+                                {expense > 0 && <span className="text-destructive">{formatCurrency(expense, 'USD')}</span>}
+                            </div>
+                            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                          </button>
+                      </AccordionPrimitive.Trigger>
+                    </AccordionPrimitive.Header>
+                    <AccordionContent className="pt-4">
+                      <div className="space-y-4">
+                        {dayTransactions.map(transaction => (
+                          <div key={transaction.id} className="group flex items-start gap-4">
+                              {enableBulkDelete && (
+                                <Checkbox
+                                  checked={selectedIds.has(transaction.id)}
+                                  onCheckedChange={(checked) => handleSelectTransaction(transaction.id, !!checked)}
+                                  className="mt-1"
+                                  aria-label={`Select transaction ${transaction.description}`}
+                                />
+                              )}
+                              <div className={cn("grid gap-0.5 flex-1", enableBulkDelete ? '' : 'pl-1')}>
+                                  <div className="flex justify-between items-start">
+                                      <p className="font-medium leading-none">{transaction.description}</p>
+                                      <div className="flex items-center -mt-1 -mr-2">
+                                          <p className={`font-semibold text-right ${transaction.type === 'income' ? 'text-primary' : transaction.type === 'expense' ? 'text-destructive' : ''}`}>
+                                              {transaction.type !== 'transfer' && (transaction.type === 'income' ? '+' : '-')}
+                                              {formatCurrency(transaction.amount, transaction.currency)}
+                                          </p>
+                                          <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                      <MoreHorizontal className="h-4 w-4" />
+                                                  </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end">
+                                                  <DropdownMenuItem onSelect={() => onAdd(date)}>
+                                                      <Plus className="mr-2 h-4 w-4" />
+                                                      <span>Add New</span>
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuSeparator />
+                                                  <DropdownMenuItem onSelect={() => onEdit(transaction)}>
+                                                      <Pencil className="mr-2 h-4 w-4" />
+                                                      <span>Edit</span>
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuItem onSelect={() => onDelete(transaction.id)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                                      <Trash2 className="mr-2 h-4 w-4" />
+                                                      <span>Delete</span>
+                                                  </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                          </DropdownMenu>
+                                      </div>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{transaction.category} · {transaction.account}</p>
+                              </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          ) : (
+              <div className="text-center text-muted-foreground py-10">
+                  <p>No transactions to display.</p>
+              </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={isConfirmingDelete} onOpenChange={setIsConfirmingDelete}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete {selectedIds.size} transaction{selectedIds.size > 1 ? 's' : ''}.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIsConfirmingDelete(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

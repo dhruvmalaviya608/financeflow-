@@ -142,6 +142,8 @@ export default function HistoryPage() {
             onAdd={handleAddTransaction}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            enableBulkDelete={true}
+            onDeleteMultiple={deleteMultipleTransactions}
           />
         </main>
       </div>
