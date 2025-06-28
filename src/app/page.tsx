@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { useSettings } from '@/context/settings-context';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const { isPasswordRequired } = useSettings();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -42,13 +44,15 @@ export default function LoginPage() {
       router.push(`/dashboard?name=${encodeURIComponent(name)}`);
     } else {
       // Login logic
-      if (password === '1234') {
+      if (!isPasswordRequired || password === '1234') {
         router.push(`/dashboard?name=${encodeURIComponent(name)}`);
       } else {
         setError('Incorrect password. Please try again.');
       }
     }
   };
+
+  const showPasswordField = isSignUp || isPasswordRequired;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -78,35 +82,37 @@ export default function LoginPage() {
               <Label htmlFor="email">Email</Label>
               <Input id="email" name="email" type="email" placeholder="name@example.com" required autoComplete="email" defaultValue="mayurmalaviya54@gmail.com" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input 
-                  id="password" 
-                  name="password" 
-                  type={showPassword ? 'text' : 'password'} 
-                  required 
-                  autoComplete={isSignUp ? "new-password" : "current-password"}
-                  defaultValue={isSignUp ? "" : "1234"}
-                  placeholder={isSignUp ? "Create a password" : ""}
-                />
-                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
+            {showPasswordField && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    name="password" 
+                    type={showPassword ? 'text' : 'password'} 
+                    required 
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
+                    defaultValue={isSignUp ? "" : "1234"}
+                    placeholder={isSignUp ? "Create a password" : ""}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                {error && (
+                  <p className="pt-1 text-sm text-destructive">{error}</p>
+                )}
               </div>
-              {error && (
-                <p className="pt-1 text-sm text-destructive">{error}</p>
-              )}
-            </div>
+            )}
             <Button type="submit" className="w-full">
               {isSignUp ? 'Sign Up' : 'Login'}
             </Button>

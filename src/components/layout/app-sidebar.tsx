@@ -112,7 +112,7 @@ export default function AppSidebar() {
               Others
             </p>
             <NavLink
-              href="#"
+              href="/dashboard/settings"
               isActive={pathname.startsWith('/dashboard/settings')}
               icon={<Settings className="h-4 w-4" />}
             >
