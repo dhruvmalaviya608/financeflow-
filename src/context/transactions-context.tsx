@@ -27,10 +27,11 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<TransactionCategory[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  // Load from localStorage on initial client-side render
+  // Load from localStorage on initial client-side mount
   useEffect(() => {
+    setIsClient(true);
     try {
       const storedTransactions = localStorage.getItem(TRANSACTIONS_STORAGE_KEY);
       if (storedTransactions) {
@@ -40,8 +41,9 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
         }));
         setTransactions(parsed);
       } else {
-        // If nothing in storage, initialize with mock data
+        // If nothing in storage, initialize with mock data and save it
         setTransactions(mockTransactions);
+        localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(mockTransactions));
       }
 
       const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
@@ -49,47 +51,50 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
         setCategories(JSON.parse(storedCategories));
       } else {
         setCategories(mockCategories);
+        localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(mockCategories));
       }
     } catch (error) {
       console.error("Failed to load data from localStorage, using mock data.", error);
       setTransactions(mockTransactions);
       setCategories(mockCategories);
-    } finally {
-        setIsLoaded(true);
     }
   }, []);
 
-  // Save to localStorage whenever state changes, but only after initial load
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(transactions));
+  const updateAndSaveTransactions = (newTransactions: Transaction[]) => {
+    setTransactions(newTransactions);
+    if (isClient) {
+      localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(newTransactions));
     }
-  }, [transactions, isLoaded]);
+  };
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+  const updateAndSaveCategories = (newCategories: TransactionCategory[]) => {
+    setCategories(newCategories);
+    if (isClient) {
+      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(newCategories));
     }
-  }, [categories, isLoaded]);
+  };
 
   const addTransaction = (data: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
       ...data,
-      id: (transactions.length + 1).toString() + Math.random(), // Not robust, but ok for mock
+      id: (transactions.length + 1).toString() + Math.random(),
     };
-    setTransactions(prev => [newTransaction, ...prev]);
+    updateAndSaveTransactions([newTransaction, ...transactions]);
   };
 
   const editTransaction = (data: Omit<Transaction, 'id'>, id: string) => {
-    setTransactions(prev => prev.map(t => t.id === id ? { ...data, id } : t));
+    const updated = transactions.map(t => (t.id === id ? { ...data, id } : t));
+    updateAndSaveTransactions(updated);
   };
-  
+
   const deleteTransaction = (id: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
+    const updated = transactions.filter(t => t.id !== id);
+    updateAndSaveTransactions(updated);
   };
 
   const deleteMultipleTransactions = (ids: string[]) => {
-    setTransactions(prev => prev.filter(t => !ids.includes(t.id)));
+    const updated = transactions.filter(t => !ids.includes(t.id));
+    updateAndSaveTransactions(updated);
     toast({
       title: `${ids.length} transaction${ids.length > 1 ? 's' : ''} deleted.`,
       variant: 'destructive',
@@ -98,31 +103,39 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
 
   const addCategory = (category: TransactionCategory) => {
     if (category.trim() && !categories.includes(category.trim())) {
-      setCategories(prev => [...prev, category.trim()].sort());
-       toast({
-          title: 'Category Added',
-          description: `"${category.trim()}" has been added to your categories.`,
+      const newCategories = [...categories, category.trim()].sort();
+      updateAndSaveCategories(newCategories);
+      toast({
+        title: 'Category Added',
+        description: `"${category.trim()}" has been added to your categories.`,
       });
     }
   };
 
   const editCategory = (oldCategory: string, newCategory: string) => {
     if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      setCategories(prev => prev.map(c => c === oldCategory ? newCategory.trim() : c).sort());
-      setTransactions(prev => prev.map(t => t.category === oldCategory ? { ...t, category: newCategory.trim() } : t));
-       toast({
-          title: 'Category Updated',
-          description: `"${oldCategory}" has been renamed to "${newCategory.trim()}".`,
+      const newCategories = categories.map(c => (c === oldCategory ? newCategory.trim() : c)).sort();
+      updateAndSaveCategories(newCategories);
+
+      const updatedTransactions = transactions.map(t =>
+        t.category === oldCategory ? { ...t, category: newCategory.trim() } : t
+      );
+      updateAndSaveTransactions(updatedTransactions);
+
+      toast({
+        title: 'Category Updated',
+        description: `"${oldCategory}" has been renamed to "${newCategory.trim()}".`,
       });
     }
   };
-  
+
   const deleteCategory = (category: string) => {
-    setCategories(prev => prev.filter(c => c !== category));
+    const newCategories = categories.filter(c => c !== category);
+    updateAndSaveCategories(newCategories);
     toast({
-        title: 'Category Deleted',
-        description: `"${category}" has been deleted.`,
-        variant: 'destructive'
+      title: 'Category Deleted',
+      description: `"${category}" has been deleted.`,
+      variant: 'destructive',
     });
   };
 
