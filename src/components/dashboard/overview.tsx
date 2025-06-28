@@ -1,3 +1,4 @@
+
 'use client';
 
 import { TrendingUp, TrendingDown, Scale } from 'lucide-react';
@@ -31,7 +32,7 @@ export default function Overview({ transactions }: OverviewProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-      <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-lg">
+      <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
           <Scale className="h-4 w-4 text-muted-foreground" />
@@ -40,7 +41,7 @@ export default function Overview({ transactions }: OverviewProps) {
           <div className="text-2xl font-bold">{formatCurrency(balance, 'USD')}</div>
         </CardContent>
       </Card>
-      <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-lg">
+      <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Income</CardTitle>
           <TrendingUp className="h-4 w-4 text-primary" />
@@ -49,7 +50,7 @@ export default function Overview({ transactions }: OverviewProps) {
           <div className="text-2xl font-bold text-primary">{formatCurrency(totalIncome, 'USD')}</div>
         </CardContent>
       </Card>
-      <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-lg">
+      <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Expenses</CardTitle>
           <TrendingDown className="h-4 w-4 text-destructive" />

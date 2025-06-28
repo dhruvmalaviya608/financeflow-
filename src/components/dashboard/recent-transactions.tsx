@@ -162,7 +162,7 @@ export default function RecentTransactions({
 
   return (
     <>
-      <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-lg">
+      <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
         <CardHeader>
           <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
