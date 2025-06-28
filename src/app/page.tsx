@@ -94,7 +94,7 @@ function AuthForm() {
           <CardHeader className="space-y-4 text-center">
             <div className="mx-auto">
               <Image
-                src="/logo.png"
+                src="/Logo.png"
                 alt="FinanceFlow Logo"
                 width={56}
                 height={56}
@@ -130,7 +130,7 @@ function AuthForm() {
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto">
             <Image
-              src="/logo.png"
+              src="/Logo.png"
               alt="FinanceFlow Logo"
               width={56}
               height={56}
@@ -241,7 +241,7 @@ export default function LoginPage() {
       <main className="flex min-h-screen w-full items-center justify-center bg-background">
         <div className="animate-glow">
           <Image
-            src="/logo.png"
+            src="/Logo.png"
             alt="FinanceFlow Logo"
             width={128}
             height={128}
