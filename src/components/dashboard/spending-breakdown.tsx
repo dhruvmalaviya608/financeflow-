@@ -110,7 +110,7 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
 
   if(data.length === 0) {
     return (
-       <Card>
+       <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-lg">
         <CardHeader>
           <CardTitle>Spending Breakdown</CardTitle>
         </CardHeader>
@@ -248,7 +248,7 @@ export default function SpendingBreakdown({ transactions }: SpendingBreakdownPro
   };
 
   return (
-    <Card>
+    <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-lg">
       <CardHeader>
         <div className="flex items-center justify-between">
             <CardTitle>Spending Breakdown</CardTitle>

@@ -172,7 +172,7 @@ export default function CalendarView({ transactions, onEdit, onDelete, month, on
 
   return (
     <>
-      <Card>
+      <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-lg">
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2">
                 <Button variant={view === 'monthly' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('monthly')}>Monthly</Button>
