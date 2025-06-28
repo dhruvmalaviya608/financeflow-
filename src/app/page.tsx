@@ -31,20 +31,12 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    // Redirect only after client has mounted and we have the correct setting
-    if (isClient && !isLoginEnabled) {
-      const storedName = localStorage.getItem('userName') || 'Guest';
-      router.replace(`/dashboard?name=${encodeURIComponent(storedName)}`);
-    }
-  }, [isClient, isLoginEnabled, router]);
-
-  useEffect(() => {
     if (typeof window !== 'undefined') {
       setUrl(window.location.href);
     }
   }, []);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     const formData = new FormData(event.currentTarget);
@@ -72,14 +64,55 @@ export default function LoginPage() {
       }
     }
   };
+  
+  const handleNameSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get('name') as string;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('userName', name);
+    }
+    router.push(`/dashboard?name=${encodeURIComponent(name)}`);
+  };
 
   const showPasswordField = isSignUp || isPasswordRequired;
 
-  // Show a loader until client has mounted and we know whether to show the login page or redirect.
-  if (!isClient || !isLoginEnabled) {
+  // Show a loader until client has mounted and we know the setting.
+  if (!isClient) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background p-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </main>
+    );
+  }
+
+  if (!isLoginEnabled) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card className="mx-auto w-full max-w-sm border-0 bg-card">
+          <CardHeader className="space-y-4 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary">
+              <Package className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
+              <CardDescription>
+                Enter your name to continue to your dashboard.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleNameSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" defaultValue="Mayur Malaviya" />
+              </div>
+              <Button type="submit" className="w-full">
+                Continue
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </main>
     );
   }
@@ -103,7 +136,7 @@ export default function LoginPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" defaultValue="Mayur Malaviya" />
