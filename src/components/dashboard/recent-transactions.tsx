@@ -145,21 +145,6 @@ export default function RecentTransactions({
       return { main: '', sub: '' };
   };
 
-  const handleGroupSelect = (transactionIds: string[], checked: boolean) => {
-    const newSelectedIds = new Set(selectedIds);
-    if (checked) {
-      transactionIds.forEach(id => newSelectedIds.add(id));
-    } else {
-      transactionIds.forEach(id => newSelectedIds.delete(id));
-    }
-    onSelectionChange(newSelectedIds);
-  };
-  
-  const areAllInGroupSelected = (transactionIds: string[]) => {
-    if (transactionIds.length === 0) return false;
-    return transactionIds.every(id => selectedIds.has(id));
-  };
-
   return (
     <>
       <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
@@ -193,14 +178,31 @@ export default function RecentTransactions({
                 const { main: titleMain, sub: titleSub } = getGroupTitle(date);
                 const groupTransactionIds = dayTransactions.map(t => t.id);
                 
+                const handleGroupSelect = (checked: boolean | 'indeterminate') => {
+                  const newSelectedIds = new Set(selectedIds);
+                  if (checked === true) {
+                    groupTransactionIds.forEach(id => newSelectedIds.add(id));
+                  } else {
+                    groupTransactionIds.forEach(id => newSelectedIds.delete(id));
+                  }
+                  onSelectionChange(newSelectedIds);
+                };
+                
+                const selectedInGroupCount = groupTransactionIds.filter(id => selectedIds.has(id)).length;
+                const isGroupSelected = selectedInGroupCount > 0 && selectedInGroupCount === groupTransactionIds.length 
+                    ? true 
+                    : selectedInGroupCount > 0 
+                        ? 'indeterminate' 
+                        : false;
+
                 return (
                   <AccordionItem value={key} key={key} className="border-b-0">
                     <div className="flex items-center justify-between py-4">
                       <div className="flex items-center gap-3">
                         {enableBulkDelete && (
                           <Checkbox
-                            checked={areAllInGroupSelected(groupTransactionIds)}
-                            onCheckedChange={(checked) => handleGroupSelect(groupTransactionIds, !!checked)}
+                            checked={isGroupSelected}
+                            onCheckedChange={handleGroupSelect}
                             aria-label="Select all transactions in this group"
                             className="shrink-0"
                           />
@@ -219,45 +221,66 @@ export default function RecentTransactions({
                       </div>
                     </div>
                     <AccordionContent className="pt-0">
-                      <div className="space-y-4 pl-10">
-                        {dayTransactions.map(transaction => (
-                          <div key={transaction.id} className="group flex items-start gap-4">
-                              <div className="grid gap-0.5 flex-1">
-                                  <div className="flex justify-between items-start">
-                                      <p className="font-medium leading-none">{transaction.description}</p>
-                                      <div className="flex items-center -mt-1 -mr-2">
-                                          <p className={`font-semibold text-right ${transaction.type === 'income' ? 'text-primary' : transaction.type === 'expense' ? 'text-destructive' : ''}`}>
-                                              {transaction.type !== 'transfer' && (transaction.type === 'income' ? '+' : '-')}
-                                              {formatCurrency(transaction.amount, transaction.currency)}
-                                          </p>
-                                          <DropdownMenu>
-                                              <DropdownMenuTrigger asChild>
-                                                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                      <MoreHorizontal className="h-4 w-4" />
-                                                  </Button>
-                                              </DropdownMenuTrigger>
-                                              <DropdownMenuContent align="end">
-                                                  <DropdownMenuItem onSelect={() => onAdd(date)}>
-                                                      <Plus className="mr-2 h-4 w-4" />
-                                                      <span>Add New</span>
-                                                  </DropdownMenuItem>
-                                                  <DropdownMenuSeparator />
-                                                  <DropdownMenuItem onSelect={() => onEdit(transaction)}>
-                                                      <Pencil className="mr-2 h-4 w-4" />
-                                                      <span>Edit</span>
-                                                  </DropdownMenuItem>
-                                                  <DropdownMenuItem onSelect={() => onDelete(transaction.id)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                                      <Trash2 className="mr-2 h-4 w-4" />
-                                                      <span>Delete</span>
-                                                  </DropdownMenuItem>
-                                              </DropdownMenuContent>
-                                          </DropdownMenu>
-                                      </div>
+                      <div className={cn("space-y-4", enableBulkDelete ? "pl-9" : "pl-10")}>
+                        {dayTransactions.map(transaction => {
+                          const handleSelect = (checked: boolean) => {
+                            const newSelectedIds = new Set(selectedIds);
+                            if (checked) {
+                                newSelectedIds.add(transaction.id);
+                            } else {
+                                newSelectedIds.delete(transaction.id);
+                            }
+                            onSelectionChange(newSelectedIds);
+                          };
+                          
+                          return (
+                            <div key={transaction.id} className="group flex items-start gap-4">
+                                {enableBulkDelete && (
+                                  <div className="pt-1">
+                                    <Checkbox
+                                        checked={selectedIds.has(transaction.id)}
+                                        onCheckedChange={handleSelect}
+                                        aria-label={`Select transaction ${transaction.description}`}
+                                    />
                                   </div>
-                                  <p className="text-sm text-muted-foreground">{transaction.category} · {transaction.account}</p>
-                              </div>
-                          </div>
-                        ))}
+                                )}
+                                <div className="grid gap-0.5 flex-1">
+                                    <div className="flex justify-between items-start">
+                                        <p className="font-medium leading-none">{transaction.description}</p>
+                                        <div className="flex items-center -mt-1 -mr-2">
+                                            <p className={`font-semibold text-right ${transaction.type === 'income' ? 'text-primary' : transaction.type === 'expense' ? 'text-destructive' : ''}`}>
+                                                {transaction.type !== 'transfer' && (transaction.type === 'income' ? '+' : '-')}
+                                                {formatCurrency(transaction.amount, transaction.currency)}
+                                            </p>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onSelect={() => onAdd(date)}>
+                                                        <Plus className="mr-2 h-4 w-4" />
+                                                        <span>Add New</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onSelect={() => onEdit(transaction)}>
+                                                        <Pencil className="mr-2 h-4 w-4" />
+                                                        <span>Edit</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => onDelete(transaction.id)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        <span>Delete</span>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">{transaction.category} · {transaction.account}</p>
+                                </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
