@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -8,12 +9,20 @@ import {
   Settings,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { Skeleton } from '../ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const NavLink = ({
   href,
@@ -40,8 +49,27 @@ const NavLink = ({
 
 
 function UserProfile() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get('name');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedAvatar = localStorage.getItem('userAvatar');
+    if (storedAvatar) {
+      setAvatarSrc(storedAvatar);
+    }
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'userAvatar') {
+        setAvatarSrc(event.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const capitalize = (s: string | null): string => {
     if (!s) return 'User';
@@ -57,21 +85,69 @@ function UserProfile() {
     }
     return s.charAt(0).toUpperCase();
   }
+  
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setAvatarSrc(base64String);
+        localStorage.setItem('userAvatar', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLogout = () => {
+    router.push('/');
+  };
+
+  const handleSettings = () => {
+    router.push('/dashboard/settings');
+  };
+
+  const placeholderSrc = `https://placehold.co/100x100.png?text=${getInitials(name)}`;
 
   return (
-    <div className="flex items-center gap-3">
-        <Avatar className="h-9 w-9">
-            <AvatarImage data-ai-hint="person" src={`https://placehold.co/100x100.png?text=${getInitials(name)}`} alt="User Avatar" />
-            <AvatarFallback>{getInitials(name)}</AvatarFallback>
-        </Avatar>
-        <div>
-            <p className="text-sm font-medium">{capitalize(name)}</p>
-            <p className="text-xs text-muted-foreground">Admin</p>
-        </div>
-        <Button variant="ghost" size="icon" className="ml-auto">
-            <ChevronDown className="h-4 w-4" />
-        </Button>
-    </div>
+    <>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleAvatarChange}
+        className="hidden"
+        accept="image/*"
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="w-full justify-start p-0 h-auto bg-transparent hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+            <div className="flex items-center gap-3 w-full">
+              <Avatar className="h-9 w-9">
+                  <AvatarImage data-ai-hint="person" src={avatarSrc || placeholderSrc} alt="User Avatar" />
+                  <AvatarFallback>{getInitials(name)}</AvatarFallback>
+              </Avatar>
+              <div className="text-left">
+                  <p className="text-sm font-medium">{capitalize(name)}</p>
+                  <p className="text-xs text-muted-foreground">Admin</p>
+              </div>
+              <ChevronDown className="h-4 w-4 ml-auto shrink-0" />
+            </div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 mb-2">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleUploadClick}>Change Picture</DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleSettings}>Settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   )
 }
 

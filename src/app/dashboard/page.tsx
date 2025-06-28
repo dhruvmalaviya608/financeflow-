@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useState, useMemo, useRef } from 'react';
+import { Suspense, useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Transaction } from '@/types';
 import { useTransactions } from '@/context/transactions-context';
@@ -52,10 +52,33 @@ function UserMenu() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get('name');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedAvatar = localStorage.getItem('userAvatar');
+    if (storedAvatar) {
+      setAvatarSrc(storedAvatar);
+    }
+    // Listen for changes from other components/tabs
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'userAvatar') {
+        setAvatarSrc(event.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const handleLogout = () => {
     router.push('/');
   };
+
+  const handleSettings = () => {
+    router.push('/dashboard/settings');
+  }
 
   const capitalize = (s: string | null): string => {
     if (!s) return 'User';
@@ -72,25 +95,54 @@ function UserMenu() {
     return s.charAt(0).toUpperCase();
   }
 
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setAvatarSrc(base64String);
+        localStorage.setItem('userAvatar', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const placeholderSrc = `https://placehold.co/100x100.png?text=${getInitials(name)}`;
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 flex items-center gap-2 rounded-full p-1 pr-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage data-ai-hint="person" src={`https://placehold.co/100x100.png?text=${getInitials(name)}`} alt="User Avatar" />
-            <AvatarFallback>{getInitials(name)}</AvatarFallback>
-          </Avatar>
-          <span className="hidden sm:inline-block">{capitalize(name)}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>Settings</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+     <>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleAvatarChange}
+        className="hidden"
+        accept="image/*"
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 flex items-center gap-2 rounded-full p-1 pr-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage data-ai-hint="person" src={avatarSrc || placeholderSrc} alt="User Avatar" />
+              <AvatarFallback>{getInitials(name)}</AvatarFallback>
+            </Avatar>
+            <span className="hidden sm:inline-block">{capitalize(name)}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={handleUploadClick}>Change Picture</DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleSettings}>Settings</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }
 
