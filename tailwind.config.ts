@@ -88,10 +88,15 @@ export default {
             height: '0',
           },
         },
+        glow: {
+          '0%, 100%': { filter: 'drop-shadow(0 0 10px #fde047aa)', opacity: '0.8' },
+          '50%': { filter: 'drop-shadow(0 0 20px #fde047)', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        glow: 'glow 2.5s ease-in-out infinite',
       },
     },
   },

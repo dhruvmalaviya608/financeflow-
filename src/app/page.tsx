@@ -15,8 +15,9 @@ import { Label } from '@/components/ui/label';
 import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useSettings } from '@/context/settings-context';
+import Image from 'next/image';
 
-export default function LoginPage() {
+function AuthForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -210,4 +211,35 @@ export default function LoginPage() {
       </Card>
     </main>
   );
+}
+
+export default function LoginPage() {
+  const [isSplashVisible, setSplashVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSplashVisible(false);
+    }, 2500); // Show splash for 2.5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isSplashVisible) {
+    return (
+      <main className="flex min-h-screen w-full items-center justify-center bg-background">
+        <div className="animate-glow">
+          <Image
+            src="/logo.png"
+            alt="FinanceFlow Logo"
+            width={128}
+            height={128}
+            priority
+            data-ai-hint="fire logo"
+          />
+        </div>
+      </main>
+    );
+  }
+
+  return <AuthForm />;
 }
