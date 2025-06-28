@@ -5,24 +5,29 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 type SettingsContextType = {
   isPasswordRequired: boolean;
   setIsPasswordRequired: (value: boolean) => void;
+  isLoginEnabled: boolean;
+  setIsLoginEnabled: (value: boolean) => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-const getInitialState = () => {
+const getInitialState = (key: string, defaultValue: boolean) => {
   if (typeof window !== 'undefined') {
-    const storedValue = localStorage.getItem('isPasswordRequired');
-    return storedValue !== null ? JSON.parse(storedValue) : true;
+    const storedValue = localStorage.getItem(key);
+    return storedValue !== null ? JSON.parse(storedValue) : defaultValue;
   }
-  return true; // Default value for server-side rendering
+  return defaultValue;
 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [isPasswordRequired, _setIsPasswordRequired] = useState<boolean>(getInitialState);
+  // Default to true on the server to prevent hydration issues
+  const [isPasswordRequired, _setIsPasswordRequired] = useState(true);
+  const [isLoginEnabled, _setIsLoginEnabled] = useState(true);
 
   useEffect(() => {
-    // Sync with localStorage on initial client load
-    _setIsPasswordRequired(getInitialState());
+    // This effect runs once on the client to safely get the initial state from localStorage
+    _setIsPasswordRequired(getInitialState('isPasswordRequired', true));
+    _setIsLoginEnabled(getInitialState('isLoginEnabled', true));
   }, []);
 
   const setIsPasswordRequired = useCallback((value: boolean) => {
@@ -32,8 +37,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setIsLoginEnabled = useCallback((value: boolean) => {
+    _setIsLoginEnabled(value);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('isLoginEnabled', JSON.stringify(value));
+    }
+  }, []);
+
   return (
-    <SettingsContext.Provider value={{ isPasswordRequired, setIsPasswordRequired }}>
+    <SettingsContext.Provider value={{ isPasswordRequired, setIsPasswordRequired, isLoginEnabled, setIsLoginEnabled }}>
       {children}
     </SettingsContext.Provider>
   );

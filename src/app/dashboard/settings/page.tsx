@@ -6,17 +6,32 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 export default function SettingsPage() {
-  const { isPasswordRequired, setIsPasswordRequired } = useSettings();
+  const { isPasswordRequired, setIsPasswordRequired, isLoginEnabled, setIsLoginEnabled } = useSettings();
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
       <h1 className="text-xl font-semibold">Settings</h1>
       <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
         <CardHeader>
-          <CardTitle>Security</CardTitle>
-          <CardDescription>Manage your security settings.</CardDescription>
+          <CardTitle>Authentication</CardTitle>
+          <CardDescription>Manage your security and login settings.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+           <div className="flex items-center justify-between rounded-lg border p-4">
+            <div>
+              <Label htmlFor="login-page-switch" className="font-medium">
+                Show Login Page on Startup
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                If disabled, the app will open directly to the dashboard.
+              </p>
+            </div>
+            <Switch
+              id="login-page-switch"
+              checked={isLoginEnabled}
+              onCheckedChange={setIsLoginEnabled}
+            />
+          </div>
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div>
               <Label htmlFor="password-switch" className="font-medium">
@@ -28,8 +43,9 @@ export default function SettingsPage() {
             </div>
             <Switch
               id="password-switch"
-              checked={isPasswordRequired}
+              checked={isLoginEnabled && isPasswordRequired}
               onCheckedChange={setIsPasswordRequired}
+              disabled={!isLoginEnabled}
             />
           </div>
         </CardContent>

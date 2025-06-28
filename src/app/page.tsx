@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, EyeOff, Package } from 'lucide-react';
+import { Eye, EyeOff, Package, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +22,20 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const { isPasswordRequired } = useSettings();
+  const { isPasswordRequired, isLoginEnabled } = useSettings();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This ensures the component has mounted on the client, so `isLoginEnabled` is hydrated from localStorage
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    // Redirect only after client has mounted and we have the correct setting
+    if (isClient && !isLoginEnabled) {
+      router.replace('/dashboard?name=Guest');
+    }
+  }, [isClient, isLoginEnabled, router]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -53,6 +66,15 @@ export default function LoginPage() {
   };
 
   const showPasswordField = isSignUp || isPasswordRequired;
+
+  // Show a loader until client has mounted and we know whether to show the login page or redirect.
+  if (!isClient || !isLoginEnabled) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
