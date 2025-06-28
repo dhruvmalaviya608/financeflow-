@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, EyeOff, Package, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -92,8 +92,14 @@ function AuthForm() {
       <main className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="mx-auto w-full max-w-sm border-0 bg-card">
           <CardHeader className="space-y-4 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary">
-              <Package className="h-7 w-7 text-primary-foreground" />
+            <div className="mx-auto">
+              <Image
+                src="/logo.png"
+                alt="FinanceFlow Logo"
+                width={56}
+                height={56}
+                data-ai-hint="fire logo"
+              />
             </div>
             <div>
               <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
@@ -122,8 +128,14 @@ function AuthForm() {
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="mx-auto w-full max-w-sm border-0 bg-card">
         <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary">
-            <Package className="h-7 w-7 text-primary-foreground" />
+          <div className="mx-auto">
+            <Image
+              src="/logo.png"
+              alt="FinanceFlow Logo"
+              width={56}
+              height={56}
+              data-ai-hint="fire logo"
+            />
           </div>
           <div>
             <CardTitle className="text-2xl">
