@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Transaction, TransactionCategory } from '@/types';
 import { mockTransactions, categories as mockCategories } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
@@ -20,10 +20,57 @@ type TransactionsContextType = {
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
 
+const TRANSACTIONS_STORAGE_KEY = 'financeFlowTransactions';
+const CATEGORIES_STORAGE_KEY = 'financeFlowCategories';
+
 export function TransactionsProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [categories, setCategories] = useState<TransactionCategory[]>(mockCategories);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<TransactionCategory[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load from localStorage on initial client-side render
+  useEffect(() => {
+    try {
+      const storedTransactions = localStorage.getItem(TRANSACTIONS_STORAGE_KEY);
+      if (storedTransactions) {
+        const parsed = JSON.parse(storedTransactions).map((t: any) => ({
+          ...t,
+          date: new Date(t.date),
+        }));
+        setTransactions(parsed);
+      } else {
+        // If nothing in storage, initialize with mock data
+        setTransactions(mockTransactions);
+      }
+
+      const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+      if (storedCategories) {
+        setCategories(JSON.parse(storedCategories));
+      } else {
+        setCategories(mockCategories);
+      }
+    } catch (error) {
+      console.error("Failed to load data from localStorage, using mock data.", error);
+      setTransactions(mockTransactions);
+      setCategories(mockCategories);
+    } finally {
+        setIsLoaded(true);
+    }
+  }, []);
+
+  // Save to localStorage whenever state changes, but only after initial load
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(transactions));
+    }
+  }, [transactions, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+    }
+  }, [categories, isLoaded]);
 
   const addTransaction = (data: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
