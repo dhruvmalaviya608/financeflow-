@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
@@ -21,6 +20,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -28,17 +28,25 @@ export default function LoginPage() {
     }
   }, []);
 
-  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(null); // Clear previous errors
+    setError(null);
     const formData = new FormData(event.currentTarget);
     const name = formData.get('name') as string;
     const password = formData.get('password') as string;
 
-    if (password === '1234') {
+    if (isSignUp) {
+      // For a prototype, signing up will just log the user in directly.
+      // A real app would have a more complex registration flow.
+      console.log('Signing up with:', { name, password });
       router.push(`/dashboard?name=${encodeURIComponent(name)}`);
     } else {
-      setError('Incorrect password. Please try again.');
+      // Login logic
+      if (password === '1234') {
+        router.push(`/dashboard?name=${encodeURIComponent(name)}`);
+      } else {
+        setError('Incorrect password. Please try again.');
+      }
     }
   };
 
@@ -50,14 +58,18 @@ export default function LoginPage() {
             <Package className="h-7 w-7 text-primary-foreground" />
           </div>
           <div>
-            <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
+            <CardTitle className="text-2xl">
+              {isSignUp ? 'Create an Account' : 'Welcome to FinanceFlow'}
+            </CardTitle>
             <CardDescription>
-              Enter your credentials to access your dashboard.
+              {isSignUp
+                ? 'Enter your details to get started.'
+                : 'Enter your credentials to access your dashboard.'}
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" defaultValue="Mayur Malaviya" />
@@ -74,8 +86,9 @@ export default function LoginPage() {
                   name="password" 
                   type={showPassword ? 'text' : 'password'} 
                   required 
-                  autoComplete="current-password" 
-                  defaultValue="1234" 
+                  autoComplete={isSignUp ? "new-password" : "current-password"}
+                  defaultValue={isSignUp ? "" : "1234"}
+                  placeholder={isSignUp ? "Create a password" : ""}
                 />
                  <button
                   type="button"
@@ -95,14 +108,25 @@ export default function LoginPage() {
               )}
             </div>
             <Button type="submit" className="w-full">
-              Login
+              {isSignUp ? 'Sign Up' : 'Login'}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="#" className="underline">
-              Sign up
-            </Link>
+            {isSignUp ? (
+              <>
+                Already have an account?{' '}
+                <button onClick={() => { setIsSignUp(false); setError(null); }} className="underline">
+                  Login
+                </button>
+              </>
+            ) : (
+              <>
+                Don&apos;t have an account?{' '}
+                <button onClick={() => { setIsSignUp(true); setError(null); }} className="underline">
+                  Sign up
+                </button>
+              </>
+            )}
           </div>
 
           {url && (
