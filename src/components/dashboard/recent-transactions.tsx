@@ -113,6 +113,26 @@ export default function RecentTransactions({
     setOpenItems(groupedTransactions.map(g => g.key));
   }, [groupedTransactions]);
 
+  const allVisibleTransactionIds = useMemo(() => 
+    groupedTransactions.flatMap(group => group.transactions.map(t => t.id)),
+    [groupedTransactions]
+  );
+
+  const selectedVisibleCount = allVisibleTransactionIds.filter(id => selectedIds.has(id)).length;
+  const isAllSelected = selectedVisibleCount > 0 && selectedVisibleCount === allVisibleTransactionIds.length;
+  const isSomeSelected = selectedVisibleCount > 0 && selectedVisibleCount < allVisibleTransactionIds.length;
+  const masterCheckboxState = isAllSelected ? true : isSomeSelected ? 'indeterminate' : false;
+
+  const handleMasterSelect = (checked: boolean | 'indeterminate') => {
+    const newSelectedIds = new Set(selectedIds);
+    if (checked === true) {
+      allVisibleTransactionIds.forEach(id => newSelectedIds.add(id));
+    } else {
+      allVisibleTransactionIds.forEach(id => newSelectedIds.delete(id));
+    }
+    onSelectionChange(newSelectedIds);
+  };
+
   const areAllOpen = openItems.length === allItemKeys.length && allItemKeys.every(key => openItems.includes(key));
 
   const toggleAll = () => {
@@ -150,7 +170,15 @@ export default function RecentTransactions({
       <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
         <CardHeader>
           <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
+                {enableBulkDelete && allVisibleTransactionIds.length > 0 && (
+                  <Checkbox
+                    checked={masterCheckboxState}
+                    onCheckedChange={handleMasterSelect}
+                    aria-label="Select all transactions in this view"
+                    className="shrink-0"
+                  />
+                )}
                 <CardTitle>Transactions</CardTitle>
                 {groupedTransactions.length > 0 && (
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={toggleAll}>
