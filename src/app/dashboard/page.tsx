@@ -183,6 +183,9 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'daily' | 'monthly' | 'yearly'>('daily');
 
+  const [selectedIds, setSelectedIds] = useState(new Set<string>());
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
   const handleMonthChange = (monthValue: string) => {
       const monthIndex = parseInt(monthValue, 10);
       setSelectedDate(current => setMonthInDate(current, monthIndex));
@@ -191,6 +194,13 @@ export default function DashboardPage() {
   const handleYearChange = (yearValue: string) => {
       const year = parseInt(yearValue, 10);
       setSelectedDate(current => setYearInDate(current, year));
+  };
+  
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    deleteMultipleTransactions(Array.from(selectedIds));
+    setSelectedIds(new Set());
+    setIsConfirmingDelete(false);
   };
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
@@ -359,6 +369,12 @@ export default function DashboardPage() {
               </Select>
           </div>
           <div className="flex items-center gap-2 ml-auto">
+             {selectedIds.size > 0 && (
+              <Button variant="destructive" size="sm" onClick={() => setIsConfirmingDelete(true)}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete ({selectedIds.size})
+              </Button>
+            )}
             <div className="relative flex-1 md:grow-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Popover open={isSearchOpen && searchSuggestions.length > 0} onOpenChange={setIsSearchOpen}>
@@ -457,6 +473,9 @@ export default function DashboardPage() {
                     onAdd={handleAddTransaction}
                     viewMode={viewMode}
                     onViewModeChange={handleViewModeChange}
+                    enableBulkDelete={true}
+                    selectedIds={selectedIds}
+                    onSelectionChange={setSelectedIds}
                   />
                 </div>
                 <div className="lg:col-span-1 flex flex-col gap-4">
@@ -504,6 +523,20 @@ export default function DashboardPage() {
               <AlertDialogAction onClick={handleConfirmDeleteCategory}>Delete</AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={isConfirmingDelete} onOpenChange={setIsConfirmingDelete}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the {selectedIds.size} selected transaction(s).
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsConfirmingDelete(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSelected}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );
