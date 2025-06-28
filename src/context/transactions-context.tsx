@@ -3,7 +3,6 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Transaction, TransactionCategory } from '@/types';
-import { mockTransactions, categories as mockCategories } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
 
 type TransactionsContextType = {
@@ -41,22 +40,23 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
         }));
         setTransactions(parsed);
       } else {
-        // If nothing in storage, initialize with mock data and save it
-        setTransactions(mockTransactions);
-        localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(mockTransactions));
+        // If nothing in storage, initialize with an empty array for full manual control.
+        setTransactions([]);
+        localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify([]));
       }
 
       const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
       if (storedCategories) {
         setCategories(JSON.parse(storedCategories));
       } else {
-        setCategories(mockCategories);
-        localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(mockCategories));
+        // Start with an empty category list for full manual control.
+        setCategories([]);
+        localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify([]));
       }
     } catch (error) {
-      console.error("Failed to load data from localStorage, using mock data.", error);
-      setTransactions(mockTransactions);
-      setCategories(mockCategories);
+      console.error("Failed to load data from localStorage, starting with empty state.", error);
+      setTransactions([]);
+      setCategories([]);
     }
   }, []);
 
