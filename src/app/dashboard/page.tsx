@@ -35,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, X, Trash2 } from 'lucide-react';
+import { Search, Plus, X, Trash2, Menu } from 'lucide-react';
 import SpendingBreakdown from '@/components/dashboard/spending-breakdown';
 import { AddTransactionForm } from '@/components/dashboard/add-transaction-form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,6 +47,8 @@ import { formatCurrency } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, setMonth as setMonthInDate, setYear as setYearInDate } from 'date-fns';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import AppSidebar from '@/components/layout/app-sidebar';
 
 function UserMenu() {
   const router = useRouter();
@@ -324,6 +326,17 @@ export default function DashboardPage() {
     <>
       <div className="flex min-h-screen w-full flex-col">
         <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button size="icon" variant="outline" className="shrink-0">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0">
+              <AppSidebar />
+            </SheetContent>
+          </Sheet>
           <h1 className="text-xl font-semibold">Dashboard</h1>
           <div className="flex items-center gap-2 ml-4">
               {viewMode === 'daily' && (

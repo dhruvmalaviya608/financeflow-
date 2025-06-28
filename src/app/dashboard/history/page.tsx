@@ -25,9 +25,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Menu, Plus, Search, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import AppSidebar from '@/components/layout/app-sidebar';
 
 export default function HistoryPage() {
   const { 
@@ -99,7 +101,20 @@ export default function HistoryPage() {
     <>
       <div className="flex w-full flex-col">
         <header className="sticky top-0 flex h-14 items-center justify-between gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-          <h1 className="text-xl font-semibold">History</h1>
+          <div className="flex items-center gap-4">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button size="icon" variant="outline" className="shrink-0">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0">
+                <AppSidebar />
+              </SheetContent>
+            </Sheet>
+            <h1 className="text-xl font-semibold">History</h1>
+          </div>
           <div className="flex items-center gap-4 ml-auto">
             {selectedIds.size > 0 && (
               <Button variant="destructive" size="sm" onClick={() => setIsConfirmingDelete(true)}>
