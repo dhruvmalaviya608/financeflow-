@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/layout/theme-provider';
+import { ClickSoundProvider } from '@/components/click-sound-provider';
 
 export const metadata: Metadata = {
   title: 'FinanceFlow',
@@ -28,8 +29,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
+          <ClickSoundProvider>
             {children}
-            <Toaster />
+          </ClickSoundProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
