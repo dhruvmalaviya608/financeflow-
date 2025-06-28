@@ -33,7 +33,8 @@ export default function LoginPage() {
   useEffect(() => {
     // Redirect only after client has mounted and we have the correct setting
     if (isClient && !isLoginEnabled) {
-      router.replace('/dashboard?name=Guest');
+      const storedName = localStorage.getItem('userName') || 'Guest';
+      router.replace(`/dashboard?name=${encodeURIComponent(storedName)}`);
     }
   }, [isClient, isLoginEnabled, router]);
 
@@ -50,15 +51,22 @@ export default function LoginPage() {
     const name = formData.get('name') as string;
     const password = formData.get('password') as string;
 
+    const handleSuccess = () => {
+       if (typeof window !== 'undefined') {
+        localStorage.setItem('userName', name);
+      }
+      router.push(`/dashboard?name=${encodeURIComponent(name)}`);
+    }
+
     if (isSignUp) {
       // For a prototype, signing up will just log the user in directly.
       // A real app would have a more complex registration flow.
       console.log('Signing up with:', { name, password });
-      router.push(`/dashboard?name=${encodeURIComponent(name)}`);
+      handleSuccess();
     } else {
       // Login logic
       if (!isPasswordRequired || password === '1234') {
-        router.push(`/dashboard?name=${encodeURIComponent(name)}`);
+        handleSuccess();
       } else {
         setError('Incorrect password. Please try again.');
       }
