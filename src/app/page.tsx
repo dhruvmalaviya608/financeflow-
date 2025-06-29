@@ -21,7 +21,7 @@ function SplashScreen() {
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-background">
       <img
-        src="/logo.png"
+        src="/assets/logo.png"
         alt="FinanceFlow Logo"
         width={120}
         height={120}
@@ -107,7 +107,7 @@ function AuthForm() {
         <Card className="mx-auto w-full max-w-sm border-0 bg-card">
           <CardHeader className="space-y-4 text-center">
              <div className="mx-auto">
-              <img src="/logo.png" alt="FinanceFlow Logo" width={80} height={80} />
+              <img src="/assets/logo.png" alt="FinanceFlow Logo" width={80} height={80} />
             </div>
             <div>
               <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
@@ -137,7 +137,7 @@ function AuthForm() {
       <Card className="mx-auto w-full max-w-sm border-0 bg-card">
         <CardHeader className="space-y-4 text-center">
            <div className="mx-auto">
-            <img src="/logo.png" alt="FinanceFlow Logo" width={80} height={80} />
+            <img src="/assets/logo.png" alt="FinanceFlow Logo" width={80} height={80} />
           </div>
           <div>
             <CardTitle className="text-2xl">
