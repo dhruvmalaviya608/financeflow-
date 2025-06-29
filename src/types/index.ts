@@ -12,6 +12,7 @@ export type Transaction = {
   category: TransactionCategory;
   account: Account;
   currency: string;
+  imageUrls?: string[];
 };
 
 export type Budget = {

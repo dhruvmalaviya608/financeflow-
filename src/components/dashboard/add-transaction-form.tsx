@@ -25,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Transaction, TransactionCategory, Account } from '@/types';
 import { accounts } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarIcon, CreditCard, Folder, DollarSign, Pen, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
+import { Calendar as CalendarIcon, CreditCard, Folder, DollarSign, Pen, Plus, Trash2, Pencil, Check, X, Camera } from 'lucide-react';
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -40,6 +40,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import Image from 'next/image';
 
 const FormSchema = z.object({
   description: z.string().optional(),
@@ -51,6 +52,7 @@ const FormSchema = z.object({
     required_error: "A date is required.",
   }),
   currency: z.string().min(2, { message: 'Currency is required.' }),
+  imageUrls: z.array(z.string()).optional(),
 });
 
 const currencies = [
@@ -220,11 +222,13 @@ const ManageCategoriesDialog = ({ categories, onAddCategory, onEditCategory, onD
 export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, transactionDate, categories, onAddCategory, onEditCategory, onDeleteCategory }: AddTransactionFormProps) {
   const { toast } = useToast();
   const [isManageCategoryOpen, setManageCategoryOpen] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: initialData ? {
-        ...initialData
+        ...initialData,
+        imageUrls: initialData.imageUrls || [],
     } : {
       description: '',
       amount: 0,
@@ -233,12 +237,16 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
       account: 'Cash',
       date: transactionDate || new Date(),
       currency: 'USD',
+      imageUrls: [],
     },
   });
   
   React.useEffect(() => {
     if (initialData) {
-      form.reset(initialData);
+      form.reset({
+        ...initialData,
+        imageUrls: initialData.imageUrls || [],
+      });
     } else {
       form.reset({
         description: '',
@@ -248,6 +256,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
         account: 'Cash',
         date: transactionDate || new Date(),
         currency: 'USD',
+        imageUrls: [],
       });
     }
   }, [initialData, transactionDate, form]);
@@ -264,7 +273,39 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
     setDialogOpen(false);
   }
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    const currentUrls = form.getValues('imageUrls') || [];
+    if (currentUrls.length + files.length > 5) {
+      toast({
+        title: 'Image limit reached',
+        description: 'You can upload a maximum of 5 images per transaction.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newUrls = [...(form.getValues('imageUrls') || []), reader.result as string];
+        form.setValue('imageUrls', newUrls, { shouldValidate: true, shouldDirty: true });
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemovePreview = (indexToRemove: number) => {
+    const currentUrls = form.getValues('imageUrls') || [];
+    const updatedUrls = currentUrls.filter((_, index) => index !== indexToRemove);
+    form.setValue('imageUrls', updatedUrls, { shouldValidate: true, shouldDirty: true });
+  };
+
   const transactionType = form.watch('type');
+  const imageUrls = form.watch('imageUrls') || [];
+
   const typeColors = {
     income: 'bg-blue-500 hover:bg-blue-600 text-white',
     expense: 'bg-pink-500 hover:bg-pink-600 text-white',
@@ -412,6 +453,46 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
           )}
         />
         
+        <div className="space-y-2">
+            <Label className="flex items-center gap-3 text-card-foreground"><Camera className="w-5 h-5 text-muted-foreground" /> Attachments</Label>
+            <div className="flex flex-wrap gap-2">
+                {imageUrls.map((src, index) => (
+                <div key={index} className="relative w-20 h-20 group">
+                    <Image src={src} alt={`preview ${index}`} fill className="object-cover rounded-md" />
+                    <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemovePreview(index)}
+                    >
+                    <X className="h-4 w-4" />
+                    </Button>
+                </div>
+                ))}
+                {imageUrls.length < 5 && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-20 h-20 flex flex-col items-center justify-center text-muted-foreground hover:text-foreground"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <Plus className="h-6 w-6" />
+                    <span className="text-xs mt-1">Add Photo</span>
+                </Button>
+                )}
+            </div>
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                capture="environment"
+                multiple
+                onChange={handleFileChange}
+            />
+        </div>
+
         <div className="pt-2">
             <Button type="submit" className={cn( "w-full", typeColors[transactionType] )}>
                 {initialData ? 'Update Transaction' : 'Save Transaction'}

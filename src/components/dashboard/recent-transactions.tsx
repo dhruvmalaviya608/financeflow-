@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { MoreHorizontal, Pencil, Plus, Trash2, ChevronsUpDown } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, Trash2, ChevronsUpDown, Camera } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
+import ImageGalleryDialog from './image-gallery-dialog';
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -60,6 +61,16 @@ export default function RecentTransactions({
   selectedIds = new Set(),
   onSelectionChange = () => {},
 }: RecentTransactionsProps) {
+
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [imagesToShow, setImagesToShow] = useState<string[]>([]);
+
+  const handleOpenGallery = (urls: string[]) => {
+    if (urls && urls.length > 0) {
+      setImagesToShow(urls);
+      setGalleryOpen(true);
+    }
+  };
 
   const groupedTransactions = useMemo(() => {
     let groupBy: (t: Transaction) => string;
@@ -274,7 +285,14 @@ export default function RecentTransactions({
                                 )}
                                 <div className="grid gap-0.5 flex-1">
                                     <div className="flex justify-between items-start">
-                                        <p className="font-medium leading-none">{transaction.description}</p>
+                                        <div className="flex items-center gap-2">
+                                          <p className="font-medium leading-none">{transaction.description}</p>
+                                          {transaction.imageUrls && transaction.imageUrls.length > 0 && (
+                                            <button onClick={() => handleOpenGallery(transaction.imageUrls!)}>
+                                                <Camera className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                            </button>
+                                          )}
+                                        </div>
                                         <div className="flex items-center -mt-1 -mr-2">
                                             <p className={`font-semibold text-right ${transaction.type === 'income' ? 'text-primary' : transaction.type === 'expense' ? 'text-destructive' : ''}`}>
                                                 {transaction.type !== 'transfer' && (transaction.type === 'income' ? '+' : '-')}
@@ -322,6 +340,11 @@ export default function RecentTransactions({
           )}
         </CardContent>
       </Card>
+      <ImageGalleryDialog
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        imageUrls={imagesToShow}
+      />
     </>
   );
 }
