@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSettings } from '@/context/settings-context';
@@ -8,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Download, Menu } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import AppSidebar from '@/components/layout/app-sidebar';
 
 export default function SettingsPage() {
@@ -43,6 +44,7 @@ export default function SettingsPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
               <AppSidebar />
             </SheetContent>
           </Sheet>

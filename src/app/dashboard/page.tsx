@@ -47,7 +47,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, setMonth as setMonthInDate, setYear as setYearInDate } from 'date-fns';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import AppSidebar from '@/components/layout/app-sidebar';
 
 function UserMenu() {
@@ -344,6 +344,7 @@ export default function DashboardPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
               <AppSidebar />
             </SheetContent>
           </Sheet>

@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, Plus, Search, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import AppSidebar from '@/components/layout/app-sidebar';
 
 export default function HistoryPage() {
@@ -110,6 +110,7 @@ export default function HistoryPage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0">
+                <SheetTitle className="sr-only">Navigation</SheetTitle>
                 <AppSidebar />
               </SheetContent>
             </Sheet>
