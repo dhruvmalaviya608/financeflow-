@@ -15,7 +15,6 @@ import { Label } from '@/components/ui/label';
 import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useSettings } from '@/context/settings-context';
-import Image from 'next/image';
 
 function AuthForm() {
   const router = useRouter();
@@ -92,15 +91,6 @@ function AuthForm() {
       <main className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="mx-auto w-full max-w-sm border-0 bg-card">
           <CardHeader className="space-y-4 text-center">
-            <div className="mx-auto">
-              <Image
-                src="/Logo.png"
-                alt="FinanceFlow Logo"
-                width={56}
-                height={56}
-                data-ai-hint="fire logo"
-              />
-            </div>
             <div>
               <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
               <CardDescription>
@@ -128,15 +118,6 @@ function AuthForm() {
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="mx-auto w-full max-w-sm border-0 bg-card">
         <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto">
-            <Image
-              src="/Logo.png"
-              alt="FinanceFlow Logo"
-              width={56}
-              height={56}
-              data-ai-hint="fire logo"
-            />
-          </div>
           <div>
             <CardTitle className="text-2xl">
               {isSignUp ? 'Create an Account' : 'Welcome to FinanceFlow'}
@@ -226,32 +207,5 @@ function AuthForm() {
 }
 
 export default function LoginPage() {
-  const [isSplashVisible, setSplashVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSplashVisible(false);
-    }, 2500); // Show splash for 2.5 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isSplashVisible) {
-    return (
-      <main className="flex min-h-screen w-full items-center justify-center bg-background">
-        <div className="animate-glow">
-          <Image
-            src="/Logo.png"
-            alt="FinanceFlow Logo"
-            width={128}
-            height={128}
-            priority
-            data-ai-hint="fire logo"
-          />
-        </div>
-      </main>
-    );
-  }
-
   return <AuthForm />;
 }
