@@ -44,7 +44,7 @@ export default function SettingsPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <AppSidebar />
             </SheetContent>
           </Sheet>
@@ -52,7 +52,7 @@ export default function SettingsPage() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="grid gap-4 md:gap-8">
-          <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
+          <Card>
             <CardHeader>
               <CardTitle>Authentication</CardTitle>
               <CardDescription>Manage your security and login settings.</CardDescription>
@@ -91,7 +91,7 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card/50 dark:bg-card/30 backdrop-blur-xl border border-white/10">
+          <Card>
             <CardHeader>
               <CardTitle>Data Management</CardTitle>
               <CardDescription>Export your transaction data to an Excel file.</CardDescription>
