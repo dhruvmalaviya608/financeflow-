@@ -20,13 +20,7 @@ import { useSettings } from '@/context/settings-context';
 function SplashScreen() {
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-background">
-      <img
-        src="/assets/logo.png"
-        alt="FinanceFlow Logo"
-        width={120}
-        height={120}
-        className="animate-glow"
-      />
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
     </div>
   );
 }
@@ -106,9 +100,6 @@ function AuthForm() {
       <main className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="mx-auto w-full max-w-sm border-0 bg-card">
           <CardHeader className="space-y-4 text-center">
-             <div className="mx-auto">
-              <img src="/assets/logo.png" alt="FinanceFlow Logo" width={80} height={80} />
-            </div>
             <div>
               <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
               <CardDescription>
@@ -136,9 +127,6 @@ function AuthForm() {
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="mx-auto w-full max-w-sm border-0 bg-card">
         <CardHeader className="space-y-4 text-center">
-           <div className="mx-auto">
-            <img src="/assets/logo.png" alt="FinanceFlow Logo" width={80} height={80} />
-          </div>
           <div>
             <CardTitle className="text-2xl">
               {isSignUp ? 'Create an Account' : 'Welcome to FinanceFlow'}
