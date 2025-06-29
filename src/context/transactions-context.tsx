@@ -63,7 +63,27 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   const updateAndSaveTransactions = (newTransactions: Transaction[]) => {
     setTransactions(newTransactions);
     if (isClient) {
-      localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(newTransactions));
+      try {
+        localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(newTransactions));
+      } catch (error) {
+        if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+          console.error("Storage quota exceeded. Could not save all transaction data.", error);
+          toast({
+            variant: 'destructive',
+            title: 'Storage Limit Reached',
+            description: 'Failed to save transaction images because local storage is full. Please clear some old transactions to free up space.',
+            duration: 5000,
+          });
+        } else {
+          // For other errors, you might want to re-throw or handle them differently
+          console.error("An unexpected error occurred while saving transactions.", error);
+           toast({
+            variant: 'destructive',
+            title: 'An Error Occurred',
+            description: 'Could not save your changes. Please try again.',
+          });
+        }
+      }
     }
   };
 
