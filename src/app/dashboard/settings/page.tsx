@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Download, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import AppSidebar from '@/components/layout/app-sidebar';
+import KeyboardShortcutsDialog from '@/components/layout/keyboard-shortcuts-dialog';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 export default function SettingsPage() {
   const { isPasswordRequired, setIsPasswordRequired, isLoginEnabled, setIsLoginEnabled } = useSettings();
@@ -35,7 +37,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button size="icon" variant="outline" className="shrink-0">
@@ -44,11 +46,15 @@ export default function SettingsPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
-              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <DialogTitle className="sr-only">Navigation Menu</DialogTitle>
               <AppSidebar />
             </SheetContent>
           </Sheet>
           <h1 className="text-xl font-semibold">Settings</h1>
+          <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle />
+            <KeyboardShortcutsDialog />
+          </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="grid gap-4 md:gap-8">

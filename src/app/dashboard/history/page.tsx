@@ -30,6 +30,8 @@ import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import AppSidebar from '@/components/layout/app-sidebar';
+import { useHotkeys } from '@/hooks/use-hotkeys';
+import KeyboardShortcutsDialog from '@/components/layout/keyboard-shortcuts-dialog';
 
 export default function HistoryPage() {
   const { 
@@ -49,11 +51,24 @@ export default function HistoryPage() {
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
   const [newTransactionDate, setNewTransactionDate] = useState<Date | null>(null);
+  const [initialTransactionType, setInitialTransactionType] = useState<'income' | 'expense' | 'transfer'>('expense');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
 
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+  useHotkeys([
+    { keys: ['delete'], callback: () => {
+      if (selectedIds.size > 0) {
+        setIsConfirmingDelete(true);
+      }
+    }},
+    { keys: ['ctrl', 't'], callback: () => handleAddTransaction(undefined, 'expense') },
+    { keys: ['ctrl', 'e'], callback: () => handleAddTransaction(undefined, 'expense') },
+    { keys: ['ctrl', 'i'], callback: () => handleAddTransaction(undefined, 'income') },
+  ], [selectedIds]);
 
   const displayedTransactions = searchQuery
     ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -76,6 +91,7 @@ export default function HistoryPage() {
 
   const handleEdit = (transaction: Transaction) => {
     setEditingTransaction(transaction);
+    setInitialTransactionType(transaction.type);
     setAddTransactionOpen(true);
   };
 
@@ -91,16 +107,17 @@ export default function HistoryPage() {
     setDeletingCategory(null);
   };
 
-  const handleAddTransaction = (date?: Date) => {
+  const handleAddTransaction = (date?: Date, type: 'income' | 'expense' | 'transfer' = 'expense') => {
     setEditingTransaction(null);
     setNewTransactionDate(date || null);
+    setInitialTransactionType(type);
     setAddTransactionOpen(true);
   }
 
   return (
     <>
       <div className="flex w-full flex-col">
-        <header className="sticky top-0 flex h-14 items-center justify-between gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-card px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <div className="flex items-center gap-4">
             <Sheet>
               <SheetTrigger asChild>
@@ -110,7 +127,7 @@ export default function HistoryPage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0">
-                <SheetTitle className="sr-only">Navigation</SheetTitle>
+                <DialogTitle className="sr-only">Navigation Menu</DialogTitle>
                 <AppSidebar />
               </SheetContent>
             </Sheet>
@@ -133,7 +150,6 @@ export default function HistoryPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
-            <ThemeToggle />
             <Dialog open={isAddTransactionOpen} onOpenChange={(isOpen) => {
               setAddTransactionOpen(isOpen);
               if (!isOpen) {
@@ -159,6 +175,7 @@ export default function HistoryPage() {
                   setDialogOpen={setAddTransactionOpen}
                   initialData={editingTransaction}
                   transactionDate={newTransactionDate}
+                  initialType={initialTransactionType}
                   categories={categories}
                   onAddCategory={addCategory}
                   onEditCategory={editCategory}
@@ -166,6 +183,8 @@ export default function HistoryPage() {
                 />
               </DialogContent>
             </Dialog>
+            <ThemeToggle />
+            <KeyboardShortcutsDialog />
           </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">

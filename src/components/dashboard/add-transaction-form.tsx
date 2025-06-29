@@ -14,7 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -42,6 +41,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import Image from 'next/image';
+import { Label } from '../ui/label';
+import { useHotkeys } from '@/hooks/use-hotkeys';
 
 const FormSchema = z.object({
   description: z.string().optional(),
@@ -69,6 +70,7 @@ type AddTransactionFormProps = {
   setDialogOpen: (open: boolean) => void;
   initialData?: Transaction | null;
   transactionDate?: Date | null;
+  initialType?: 'income' | 'expense' | 'transfer';
   categories: TransactionCategory[];
   onAddCategory: (category: TransactionCategory) => void;
   onEditCategory: (oldName: string, newName: string) => void;
@@ -220,7 +222,7 @@ const ManageCategoriesDialog = ({ categories, onAddCategory, onEditCategory, onD
 };
 
 
-export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, transactionDate, categories, onAddCategory, onEditCategory, onDeleteCategory }: AddTransactionFormProps) {
+export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, transactionDate, initialType = 'expense', categories, onAddCategory, onEditCategory, onDeleteCategory }: AddTransactionFormProps) {
   const { toast } = useToast();
   const [isManageCategoryOpen, setManageCategoryOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -233,7 +235,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
     } : {
       description: '',
       amount: 0,
-      type: 'expense',
+      type: initialType,
       category: 'Food',
       account: 'Cash',
       date: transactionDate || new Date(),
@@ -241,7 +243,19 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
       imageUrls: [],
     },
   });
+
+  const submitButtonRef = React.useRef<HTMLButtonElement>(null);
   
+  useHotkeys([
+    {
+      keys: ['ctrl', 's'],
+      callback: (event) => {
+        event.preventDefault();
+        submitButtonRef.current?.click();
+      },
+    }
+  ], []);
+
   React.useEffect(() => {
     if (initialData) {
       form.reset({
@@ -252,7 +266,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
       form.reset({
         description: '',
         amount: 0,
-        type: 'expense',
+        type: initialType,
         category: 'Food',
         account: 'Cash',
         date: transactionDate || new Date(),
@@ -260,7 +274,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
         imageUrls: [],
       });
     }
-  }, [initialData, transactionDate, form]);
+  }, [initialData, transactionDate, initialType, form]);
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     onFormSubmit({
@@ -330,7 +344,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
               <FormControl>
                 <Tabs
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   className="w-full"
                 >
                   <TabsList className="grid w-full grid-cols-3">
@@ -495,7 +509,7 @@ export function AddTransactionForm({ onFormSubmit, setDialogOpen, initialData, t
         </div>
 
         <div className="pt-2">
-            <Button type="submit" className={cn( "w-full", typeColors[transactionType] )}>
+            <Button ref={submitButtonRef} type="submit" className={cn( "w-full", typeColors[transactionType] )}>
                 {initialData ? 'Update Transaction' : 'Save Transaction'}
             </Button>
         </div>
