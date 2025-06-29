@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -15,6 +16,20 @@ import { Label } from '@/components/ui/label';
 import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useSettings } from '@/context/settings-context';
+
+function SplashScreen() {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-background">
+      <img
+        src="/Logo.png"
+        alt="FinanceFlow Logo"
+        width={120}
+        height={120}
+        className="animate-glow"
+      />
+    </div>
+  );
+}
 
 function AuthForm() {
   const router = useRouter();
@@ -91,6 +106,9 @@ function AuthForm() {
       <main className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="mx-auto w-full max-w-sm border-0 bg-card">
           <CardHeader className="space-y-4 text-center">
+             <div className="mx-auto">
+              <img src="/Logo.png" alt="FinanceFlow Logo" width={80} height={80} />
+            </div>
             <div>
               <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
               <CardDescription>
@@ -118,6 +136,9 @@ function AuthForm() {
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="mx-auto w-full max-w-sm border-0 bg-card">
         <CardHeader className="space-y-4 text-center">
+           <div className="mx-auto">
+            <img src="/Logo.png" alt="FinanceFlow Logo" width={80} height={80} />
+          </div>
           <div>
             <CardTitle className="text-2xl">
               {isSignUp ? 'Create an Account' : 'Welcome to FinanceFlow'}
@@ -207,5 +228,19 @@ function AuthForm() {
 }
 
 export default function LoginPage() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500); // 2.5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+  
   return <AuthForm />;
 }
