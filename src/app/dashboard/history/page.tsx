@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Transaction } from '@/types';
 import { useTransactions } from '@/context/transactions-context';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
@@ -61,25 +61,41 @@ export default function HistoryPage() {
 
   useHotkeys([
     { keys: ['delete'], callback: () => {
-      if (selectedIds.size > 0) {
+      if (selectedIds.size > 0 && !isConfirmingDelete) {
         setIsConfirmingDelete(true);
       }
     }},
     { keys: ['ctrl', 't'], callback: () => handleAddTransaction(undefined, 'expense') },
     { keys: ['ctrl', 'e'], callback: () => handleAddTransaction(undefined, 'expense') },
     { keys: ['ctrl', 'i'], callback: () => handleAddTransaction(undefined, 'income') },
-  ], [selectedIds]);
+  ], [selectedIds, isConfirmingDelete]);
 
   const displayedTransactions = searchQuery
     ? transactions.filter(t => t.description.toLowerCase().includes(searchQuery.toLowerCase()))
     : transactions;
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
     deleteMultipleTransactions(Array.from(selectedIds));
     setSelectedIds(new Set());
     setIsConfirmingDelete(false);
-  };
+  }, [selectedIds, deleteMultipleTransactions]);
+
+  useEffect(() => {
+    if (!isConfirmingDelete) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        handleDeleteSelected();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isConfirmingDelete, handleDeleteSelected]);
 
   const handleSaveTransaction = (data: Omit<Transaction, 'id'>, id?: string) => {
     if (id) {
@@ -127,7 +143,7 @@ export default function HistoryPage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0">
-                <DialogTitle className="sr-only">Navigation Menu</DialogTitle>
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <AppSidebar />
               </SheetContent>
             </Sheet>
