@@ -13,17 +13,15 @@ export function useHotkeys(hotkeys: Hotkey[], dependencies: any[] = []) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
-      // Ignore hotkeys if the user is typing in an input, textarea, or a content-editable element
+      // Ignore hotkeys if the user is typing in an input, textarea, or a content-editable element,
+      // but make an exception for the 'save' shortcut (Ctrl+S).
       if (
         ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
         target.isContentEditable
       ) {
-        // Allow Ctrl+S to work in textareas for saving notes
-        const isSaveShortcut = hotkey.keys.includes('s') && (event.ctrlKey || event.metaKey);
-        if (target.tagName === 'TEXTAREA' && isSaveShortcut) {
-            // continue
-        } else {
-            return;
+        const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's';
+        if (!isSaveShortcut) {
+          return; // Block other shortcuts while typing.
         }
       }
 
