@@ -1,16 +1,12 @@
-
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription
 } from '@/components/ui/dialog';
-import { HelpCircle } from 'lucide-react';
 import { useHotkeys } from '@/hooks/use-hotkeys';
 import { useState } from 'react';
 
@@ -34,12 +30,6 @@ export default function KeyboardShortcutsDialog() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <HelpCircle className="h-5 w-5" />
-                    <span className="sr-only">Keyboard Shortcuts</span>
-                </Button>
-            </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Keyboard Shortcuts</DialogTitle>
