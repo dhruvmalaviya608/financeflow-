@@ -1,5 +1,16 @@
+'use client'; // ✅ Yeh sabse upar hona chahiye
+// UI Components
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
-'use client';
+// aur baaki imports...
+
 
 import { useSettings } from '@/context/settings-context';
 import { useTransactions } from '@/context/transactions-context';

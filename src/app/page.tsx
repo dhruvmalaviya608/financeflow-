@@ -146,7 +146,7 @@ function AuthForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="name@example.com" required autoComplete="email" defaultValue="mayurmalaviya54@gmail.com" />
+              <Input id="email" name="email" type="email" placeholder="name@example.com" required autoComplete="email" defaultValue="dhruvmalaviya54@gmail.com" />
             </div>
             {showPasswordField && (
               <div className="space-y-2">
