@@ -9,6 +9,9 @@ import { ClickSoundProvider } from '@/components/click-sound-provider';
 export const metadata: Metadata = {
   title: 'FinanceFlow',
   description: 'Your personal finance tracker.',
+  verification: {
+    google: "027mfxk1X9UHlV9hlSMiaVCghmc-r_kAKBvX_FerY-k"
+  }
 };
 
 export default function RootLayout({
