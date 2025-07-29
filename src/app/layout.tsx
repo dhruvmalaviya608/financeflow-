@@ -1,8 +1,7 @@
-
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
-import { cn } from "@/lib/utils"
-import { Toaster } from "@/components/ui/toaster"
+import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/layout/theme-provider';
 import { ClickSoundProvider } from '@/components/click-sound-provider';
 
@@ -22,16 +21,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* ✅ Google Search Console Verification Meta Tag */}
+        <meta name="google-site-verification" content="027mfxk1X9UHlV9hlSMiaVCghmc-r_kAKBvX_FerY-k" />
+        
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className={cn("font-body antialiased", "bg-background")}>
         <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
         >
           <ClickSoundProvider>
             {children}
