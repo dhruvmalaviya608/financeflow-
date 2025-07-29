@@ -1,23 +1,8 @@
-'use client'; // ✅ Yeh sabse upar hona chahiye
-// UI Components
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+'use client';
 
-// aur baaki imports...
-
-
-import { useSettings } from '@/context/settings-context';
 import { useTransactions } from '@/context/transactions-context';
 import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Download, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -26,7 +11,6 @@ import KeyboardShortcutsDialog from '@/components/layout/keyboard-shortcuts-dial
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 export default function SettingsPage() {
-  const { isPasswordRequired, setIsPasswordRequired, isLoginEnabled, setIsLoginEnabled } = useSettings();
   const { transactions } = useTransactions();
 
   const handleExport = () => {
@@ -57,7 +41,7 @@ export default function SettingsPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
-              <DialogTitle className="sr-only">Navigation Menu</DialogTitle>
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <AppSidebar />
             </SheetContent>
           </Sheet>
@@ -69,45 +53,6 @@ export default function SettingsPage() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="grid gap-4 md:gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Authentication</CardTitle>
-              <CardDescription>Manage your security and login settings.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <Label htmlFor="login-page-switch" className="font-medium">
-                    Show Login Page on Startup
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    If disabled, the app will open directly to the dashboard.
-                  </p>
-                </div>
-                <Switch
-                  id="login-page-switch"
-                  checked={isLoginEnabled}
-                  onCheckedChange={setIsLoginEnabled}
-                />
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <Label htmlFor="password-switch" className="font-medium">
-                    Require Password on Login
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    If disabled, you can log in without entering a password.
-                  </p>
-                </div>
-                <Switch
-                  id="password-switch"
-                  checked={isLoginEnabled && isPasswordRequired}
-                  onCheckedChange={setIsPasswordRequired}
-                  disabled={!isLoginEnabled}
-                />
-              </div>
-            </CardContent>
-          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Data Management</CardTitle>

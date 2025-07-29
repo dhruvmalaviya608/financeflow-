@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/layout/theme-provider';
 import { ClickSoundProvider } from '@/components/click-sound-provider';
-import { SettingsProvider } from '@/context/settings-context';
 
 export const metadata: Metadata = {
   title: 'FinanceFlow',
@@ -25,19 +24,17 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased", "bg-background")}>
-        <SettingsProvider>
-          <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-          >
-            <ClickSoundProvider>
-              {children}
-            </ClickSoundProvider>
-            <Toaster />
-          </ThemeProvider>
-        </SettingsProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
+          <ClickSoundProvider>
+            {children}
+          </ClickSoundProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
