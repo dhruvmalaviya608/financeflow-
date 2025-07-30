@@ -12,16 +12,15 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        {/* ✅ Google AdSense Script with your client ID */}
+      <head />
+      <body className={inter.className}>
+        {/* ✅ Google AdSense Script (placed correctly in body) */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4261185439528205"
           strategy="afterInteractive"
           crossOrigin="anonymous"
         />
-      </head>
-      <body className={inter.className}>
         {children}
       </body>
     </html>
