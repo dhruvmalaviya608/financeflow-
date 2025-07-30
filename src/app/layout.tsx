@@ -1,5 +1,4 @@
 import "./globals.css";
-import Script from "next/script";
 import { ReactNode } from "react";
 
 export const metadata = {
@@ -11,17 +10,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {/* ✅ Google AdSense Script */}
-        <Script
+        {/* ✅ Google AdSense Plain Script (NO Next.js <Script /> here) */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4261185439528205"
-          strategy="afterInteractive"
           crossOrigin="anonymous"
-        />
+        ></script>
       </head>
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
