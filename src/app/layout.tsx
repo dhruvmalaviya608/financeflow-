@@ -21,15 +21,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* ✅ Google Search Console Verification Meta Tag */}
-        <meta name="google-site-verification" content="027mfxk1X9UHlV9hlSMiaVCghmc-r_kAKBvX_FerY-k" />
-
         {/* ✅ Google AdSense Script */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4261185439528205"
           crossOrigin="anonymous"
         ></script>
+
+        {/* ✅ Google Site Verification Meta Tag */}
+        <meta name="google-site-verification" content="027mfxk1X9UHlV9hlSMiaVCghmc-r_kAKBvX_FerY-k" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
