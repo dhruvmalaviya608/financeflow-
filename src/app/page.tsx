@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Loader2 } from 'lucide-react';
@@ -14,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import React, { useState, useEffect } from 'react';
+import Script from 'next/script'; // ✅ Google Analytics script loader
 
 function SplashScreen() {
   return (
@@ -37,29 +37,37 @@ function WelcomeForm() {
   };
 
   return (
-      <main className="flex min-h-screen items-center justify-center bg-background p-4">
-        <Card className="mx-auto w-full max-w-sm border-0 bg-card">
-          <CardHeader className="space-y-4 text-center">
-            <div>
-              <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
-              <CardDescription>
-                Enter your name to continue to your dashboard.
-              </CardDescription>
+    <main className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="mx-auto w-full max-w-sm border-0 bg-card">
+        <CardHeader className="space-y-4 text-center">
+          <div>
+            <CardTitle className="text-2xl">Welcome to FinanceFlow</CardTitle>
+            <CardDescription>
+              Enter your name to continue to your dashboard.
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleNameSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="John Doe"
+                required
+                autoComplete="name"
+                defaultValue="Mayur Malaviya"
+              />
             </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleNameSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" type="text" placeholder="John Doe" required autoComplete="name" defaultValue="Mayur Malaviya" />
-              </div>
-              <Button type="submit" className="w-full">
-                Continue
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </main>
+            <Button type="submit" className="w-full">
+              Continue
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
 
@@ -69,14 +77,28 @@ export default function WelcomePage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 2500); // 2.5 seconds
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) {
-    return <SplashScreen />;
-  }
-  
-  return <WelcomeForm />;
+  return (
+    <>
+      {/* ✅ Google Analytics Scripts */}
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-D21TCTG4M5"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-D21TCTG4M5');
+        `}
+      </Script>
+
+      {showSplash ? <SplashScreen /> : <WelcomeForm />}
+    </>
+  );
 }
