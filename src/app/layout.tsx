@@ -1,55 +1,23 @@
-import type { Metadata } from 'next';
-import './globals.css';
-import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from '@/components/layout/theme-provider';
-import { ClickSoundProvider } from '@/components/click-sound-provider';
+import Script from "next/script";
 
-export const metadata: Metadata = {
-  title: 'FinanceFlow',
-  description: 'Your personal finance tracker.',
-  verification: {
-    google: "027mfxk1X9UHlV9hlSMiaVCghmc-r_kAKBvX_FerY-k"
-  }
+export const metadata = {
+  title: "FinanceFlow",
+  description: "Track your finances",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* ✅ Google AdSense Script */}
-        <script
+    <html lang="en">
+      <head />
+      <body>
+        {/* ✅ Google AdSense Script with client ID */}
+        <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4261185439528205"
+          strategy="afterInteractive"
           crossOrigin="anonymous"
-        ></script>
-
-        {/* ✅ Google Site Verification Meta Tag */}
-        <meta name="google-site-verification" content="027mfxk1X9UHlV9hlSMiaVCghmc-r_kAKBvX_FerY-k" />
-
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
         />
-      </head>
-      <body className={cn("font-body antialiased", "bg-background")}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ClickSoundProvider>
-            {children}
-          </ClickSoundProvider>
-          <Toaster />
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );
